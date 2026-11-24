@@ -281,33 +281,33 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; }
 <div class="layout">
   <nav class="toc" aria-label="Contents">
     <p class="brand">Contents</p>
-    <ol><li><a href="#the-result-at-a-glance"><span class="num dot"></span>The result at a glance</a></li><li><a href="#0-the-starting-point"><span class="num">0</span>The starting point</a></li><li><a href="#1-plugin-level-configuration-and-a-stable-tool-location"><span class="num">1</span>Plugin-level configuration and a stable tool location</a></li><li><a href="#2-unit-tests-in-the-build"><span class="num">2</span>Unit tests in the build</a></li><li><a href="#3-connect-the-dev-server-to-the-container"><span class="num">3</span>Connect the dev server to the container</a></li><li><a href="#4-the-angular-dev-server-via-maven-profile-ng-serve"><span class="num">4</span>The Angular dev server via Maven: profile ng-serve</a></li><li><a href="#5-the-container-in-dev-mode-example-wildfly"><span class="num">5</span>The container in dev mode (example: WildFly)</a></li><li><a href="#6-angular-cli-and-pnpm-for-daily-work"><span class="num">6</span>Angular CLI and pnpm for daily work</a></li><li><a href="#7-ide-setup"><span class="num">7</span>IDE setup</a></li><li><a href="#8-daily-work-cheat-sheet"><span class="num">8</span>Daily work &mdash; cheat sheet</a></li><li><a href="#9-troubleshooting"><span class="num">9</span>Troubleshooting</a></li><li><a href="#appendix-the-complete-pomxml"><span class="num dot"></span>Appendix: the complete pom.xml</a></li></ol>
+    <ol><li><a href="#the-result-at-a-glance"><span class="num dot"></span>The result at a glance</a></li><li><a href="#0-the-starting-point"><span class="num">0</span>The starting point</a></li><li><a href="#1-plugin-level-configuration-and-a-stable-tool-location"><span class="num">1</span>Plugin-level configuration and a stable tool location</a></li><li><a href="#2-unit-tests-in-the-build"><span class="num">2</span>Unit tests in the build</a></li><li><a href="#3-the-angular-dev-server-via-maven"><span class="num">3</span>The Angular dev server via Maven</a></li><li><a href="#4-angular-cli-and-pnpm-for-daily-work"><span class="num">4</span>Angular CLI and pnpm for daily work</a></li><li><a href="#5-ide-setup"><span class="num">5</span>IDE setup</a></li><li><a href="#6-daily-work-cheat-sheet"><span class="num">6</span>Daily work &mdash; cheat sheet</a></li><li><a href="#7-troubleshooting"><span class="num">7</span>Troubleshooting</a></li><li><a href="#appendix-the-complete-pomxml"><span class="num dot"></span>Appendix: the complete pom.xml</a></li></ol>
     <button type="button" class="theme-toggle" id="theme">Toggle theme</button>
   </nav>
   <main>
     <header class="hero">
       <span class="kicker">Sub-tutorial · Maven + Angular</span>
       <h1>Angular dev cycle with Maven only</h1>
-      <p class="lead"><strong>From "the frontend-maven-plugin packs Angular into the WAR" to a full daily development setup &mdash; on a machine that has nothing but Java and Maven.</strong></p>
+      <p class="lead"><strong>From "the frontend-maven-plugin packs Angular into the WAR" to a full daily frontend development setup &mdash; on a machine that has nothing but Java and Maven.</strong></p>
     </header>
-<p>Many Jakarta EE teams already use the <a href="https://github.com/eirslett/frontend-maven-plugin">frontend-maven-plugin</a> ("eirslett plugin") to build an Angular app and package it into a WAR. That solves the <em>build</em>. This tutorial adds the <em>development cycle</em> on top of it:</p>
-<ul><li>the Angular dev server (<code>ng serve</code>) with live reload and hot module replacement,</li><li>REST calls from the dev server forwarded into the running Jakarta EE 10 container,</li><li>a container dev mode that redeploys Java changes automatically,</li><li>the Angular CLI (<code>ng generate</code>, <code>ng update</code>, …) and pnpm for daily work,</li><li>unit tests in the build and in watch mode,</li></ul>
+<p>Many Jakarta EE teams already use the <a href="https://github.com/eirslett/frontend-maven-plugin">frontend-maven-plugin</a> ("eirslett plugin") to build an Angular app and package it into a WAR. That solves the <em>build</em>. This tutorial adds the frontend <em>development cycle</em> on top of it:</p>
+<ul><li>the Angular dev server (<code>ng serve</code>) with live reload and hot module replacement,</li><li>REST calls from the dev server forwarded to the server that provides the REST APIs,</li><li>the Angular CLI (<code>ng generate</code>, <code>ng update</code>, …) and pnpm for daily work,</li><li>unit tests in the build and in watch mode,</li></ul>
 <p>…without anyone installing Node.js, pnpm or the Angular CLI by hand. Maven downloads a pinned Node.js and pnpm into the project; the Angular CLI is an ordinary dev dependency in <code>node_modules</code>. Nothing is installed globally.</p>
-<aside class="note"><p><strong>Verified setup.</strong> Every command in this tutorial was run against a sample WAR project with: Maven 3.9.14 · frontend-maven-plugin 1.15.1 · Node.js 24.15.0 · pnpm 11.10.0 · Angular 22.0.5 · WildFly 32.0.1.Final (Jakarta EE 10) · wildfly-maven-plugin 4.2.2.Final · Temurin JDK 21 · macOS. The Windows wrapper script in step 6 was <strong>not</strong> tested.</p></aside>
+<p>The backend is out of scope: the tutorial assumes there is a running server that provides the REST APIs (locally, started from the IDE, or a shared dev/test server).</p>
+<aside class="note"><p><strong>Verified setup.</strong> Every command in this tutorial was run against a sample WAR project with: Maven 3.9.14 · frontend-maven-plugin 1.15.1 · Node.js 24.15.0 · pnpm 11.10.0 · Angular 22.0.5 · macOS. The Windows wrapper script in step 4 was <strong>not</strong> tested.</p></aside>
 <h2 id="the-result-at-a-glance">The result at a glance</h2>
-<div class="table"><table><thead><tr><th>You want to …</th><th>Command (from the WAR module)</th></tr></thead><tbody><tr><td>start the container, redeploy Java changes automatically</td><td><code>mvn -Pwildfly-dev</code></td></tr><tr><td>start the Angular dev server (live reload, <code>/api</code> proxy)</td><td><code>mvn -Png-serve</code></td></tr><tr><td>run any Angular CLI / pnpm command</td><td><code>./pnpmw ng generate component features/foo</code></td></tr><tr><td>run unit tests in watch mode</td><td><code>./pnpmw test --watch</code></td></tr><tr><td>build the deployable WAR (incl. frontend tests)</td><td><code>mvn package</code></td></tr><tr><td>build only the Java part</td><td><code>mvn package -DskipFrontend</code></td></tr></tbody></table></div>
-<p>Daily work happens on <strong>http://localhost:4200</strong> (Angular dev server). It serves the frontend from memory and forwards every <code>/api/**</code> call to the container.</p>
+<div class="table"><table><thead><tr><th>You want to …</th><th>Command (from the WAR module)</th></tr></thead><tbody><tr><td>start the Angular dev server (live reload, <code>/api</code> proxy)</td><td><code>mvn -Png-serve</code></td></tr><tr><td>run any Angular CLI / pnpm command</td><td><code>./pnpmw ng generate component features/foo</code></td></tr><tr><td>run unit tests in watch mode</td><td><code>./pnpmw test --watch</code></td></tr><tr><td>build the deployable WAR (incl. frontend tests)</td><td><code>mvn package</code></td></tr></tbody></table></div>
+<p>Daily work happens on <strong>http://localhost:4200</strong> (Angular dev server). It serves the frontend from memory and forwards every <code>/api/**</code> call to the REST server.</p>
 <figure class="code diagram"><figcaption><span>Diagram</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>browser ──► localhost:4200                      ng serve
                │                                frontend/src, hot reload
                │
                └── /api/** ──► localhost:8080/myapp/api/**
-                                                WildFly dev mode
-                                                Java, hot redeploy</code></pre></figure>
+                                                REST server (already running)</code></pre></figure>
 <h2 id="0-the-starting-point"><span class="num">0</span>The starting point</h2>
-<p>The tutorial assumes a single WAR module with the Angular app in a <code>frontend/</code> subfolder. Adapt paths if your layout differs (e.g. a separate frontend module).</p>
+<p>The tutorial assumes a WAR module with the Angular app in a <code>frontend/</code> subfolder. Adapt paths if your layout differs (e.g. a separate frontend module).</p>
 <figure class="code diagram"><figcaption><span>Diagram</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>myapp/
 ├── pom.xml                      packaging: war
-├── src/main/java/…              Jakarta REST resources (@ApplicationPath("api"))
+├── src/main/…                   server side (not touched by this tutorial)
 └── frontend/
     ├── package.json             "packageManager": "pnpm@11.10.0"
     ├── pnpm-lock.yaml
@@ -373,18 +373,15 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; }
   }
 }</code></pre></figure>
 <p><strong>What is missing for daily work:</strong></p>
-<div class="table"><table><thead><tr><th>Need</th><th>Status with the plugin alone</th></tr></thead><tbody><tr><td>Angular dev server with live reload</td><td>✗ only full builds; every change = <code>mvn package</code> + redeploy</td></tr><tr><td>Frontend talks to the backend during development</td><td>✗</td></tr><tr><td>Java changes without a manual redeploy</td><td>✗</td></tr><tr><td>Angular CLI (<code>ng generate</code>, <code>ng update</code>)</td><td>✗ Node is only reachable from inside Maven</td></tr><tr><td>Unit tests</td><td>✗ not part of the build</td></tr><tr><td>IDE support (Node interpreter)</td><td>✗ Node lives in <code>target/</code> and disappears with <code>mvn clean</code></td></tr></tbody></table></div>
+<div class="table"><table><thead><tr><th>Need</th><th>Status with the plugin alone</th></tr></thead><tbody><tr><td>Angular dev server with live reload</td><td>✗ only full builds; every change = <code>mvn package</code> + redeploy</td></tr><tr><td>Frontend talks to the REST server during development</td><td>✗</td></tr><tr><td>Angular CLI (<code>ng generate</code>, <code>ng update</code>)</td><td>✗ Node is only reachable from inside Maven</td></tr><tr><td>Unit tests</td><td>✗ not part of the build</td></tr><tr><td>IDE support (Node interpreter)</td><td>✗ Node lives in <code>target/</code> and disappears with <code>mvn clean</code></td></tr></tbody></table></div>
 <h2 id="1-plugin-level-configuration-and-a-stable-tool-location"><span class="num">1</span>Plugin-level configuration and a stable tool location</h2>
-<p>Three small changes make the plugin usable for more than the build.</p>
-<p><strong>a) Versions and directories move to the plugin-level <code>&lt;configuration&gt;</code>.</strong> Settings inside an <code>&lt;execution&gt;</code> only apply to that execution. Command-line calls such as <code>mvn frontend:pnpm …</code> (step 6) run as execution <code>default-cli</code> and only see the plugin-level configuration.</p>
-<p><strong>b) The tools move from <code>target/</code> to <code>.tooling/</code>.</strong> <code>mvn clean</code> deletes <code>target/</code>, and with it Node and pnpm. Maven caches the downloads in <code>~/.m2</code>, so a reinstall is quick, but the IDE's Node interpreter path (step 7) and the <code>pnpmw</code> wrapper (step 6) need a path that stays put.</p>
-<p><strong>c) A switch to skip the frontend:</strong> <code>-DskipFrontend</code> builds only the Java part. The WildFly dev mode in step 5 uses it.</p>
+<p>Two small changes make the plugin usable for more than the build.</p>
+<p><strong>a) Versions and directories move to the plugin-level <code>&lt;configuration&gt;</code>.</strong> Settings inside an <code>&lt;execution&gt;</code> only apply to that execution. Command-line calls such as <code>mvn frontend:pnpm …</code> (step 4) run as execution <code>default-cli</code> and only see the plugin-level configuration.</p>
+<p><strong>b) The tools move from <code>target/</code> to <code>.tooling/</code>.</strong> <code>mvn clean</code> deletes <code>target/</code>, and with it Node and pnpm. Maven caches the downloads in <code>~/.m2</code>, so a reinstall is quick, but the IDE's Node interpreter path (step 5) and the <code>pnpmw</code> wrapper (step 4) need a path that stays put.</p>
 <figure class="code"><figcaption><span>XML</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>&lt;<span class="t">properties</span>&gt;
     <span class="c">&lt;!-- frontend toolchain: keep in sync with "packageManager" in frontend/package.json --&gt;</span>
     &lt;<span class="t">node.version</span>&gt;v24.15.0&lt;/<span class="t">node.version</span>&gt;
     &lt;<span class="t">pnpm.version</span>&gt;v11.10.0&lt;/<span class="t">pnpm.version</span>&gt;
-    <span class="c">&lt;!-- -DskipFrontend: build only the Java part (fast backend-only rebuilds) --&gt;</span>
-    &lt;<span class="t">skipFrontend</span>&gt;false&lt;/<span class="t">skipFrontend</span>&gt;
 &lt;/<span class="t">properties</span>&gt;</code></pre></figure>
 <figure class="code"><figcaption><span>XML</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>&lt;<span class="t">plugin</span>&gt;
     &lt;<span class="t">groupId</span>&gt;com.github.eirslett&lt;/<span class="t">groupId</span>&gt;
@@ -396,7 +393,6 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; }
         &lt;<span class="t">installDirectory</span>&gt;.tooling&lt;/<span class="t">installDirectory</span>&gt;
         &lt;<span class="t">nodeVersion</span>&gt;<span class="v">${node.version}</span>&lt;/<span class="t">nodeVersion</span>&gt;
         &lt;<span class="t">pnpmVersion</span>&gt;<span class="v">${pnpm.version}</span>&lt;/<span class="t">pnpmVersion</span>&gt;
-        &lt;<span class="t">skip</span>&gt;<span class="v">${skipFrontend}</span>&lt;/<span class="t">skip</span>&gt;
     &lt;/<span class="t">configuration</span>&gt;
     &lt;<span class="t">executions</span>&gt;
         &lt;<span class="t">execution</span>&gt;
@@ -412,7 +408,7 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; }
 <figure class="code"><figcaption><span>Text</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>.tooling/</code></pre></figure>
 <p><strong>Supply-chain safety net.</strong> Put an <code>.npmrc</code> into <code>frontend/</code>:</p>
 <figure class="code"><figcaption><span>Text</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>ignore-scripts=true</code></pre></figure>
-<p>With it, <em>every</em> pnpm call &mdash; also the ones you type in step 6, such as <code>pnpmw add …</code> &mdash; skips the lifecycle scripts of dependencies, not just the <code>install</code> in the pom. Scripts you call explicitly (<code>pnpm start</code>, <code>pnpm run build</code>, <code>pnpm test</code>) still run.</p>
+<p>With it, <em>every</em> pnpm call &mdash; also the ones you type in step 4, such as <code>pnpmw add …</code> &mdash; skips the lifecycle scripts of dependencies, not just the <code>install</code> in the pom. Scripts you call explicitly (<code>pnpm start</code>, <code>pnpm run build</code>, <code>pnpm test</code>) still run.</p>
 <p><strong>Check:</strong></p>
 <figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>mvn package
 ls .tooling/node         <span class="c"> # node, pnpm, node_modules/</span></code></pre></figure>
@@ -434,8 +430,8 @@ ls .tooling/node         <span class="c"> # node, pnpm, node_modules/</span></co
 <figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>mvn test
 <span class="c"># [INFO] --- frontend:1.15.1:pnpm (pnpm-test) @ myapp ---</span>
 <span class="c"># [INFO]       Tests  1 passed (1)</span></code></pre></figure>
-<h2 id="3-connect-the-dev-server-to-the-container"><span class="num">3</span>Connect the dev server to the container</h2>
-<p>The Angular dev server runs on port 4200, the container on 8080. The browser only talks to 4200; the dev server forwards REST calls to the container (no CORS setup needed).</p>
+<h2 id="3-the-angular-dev-server-via-maven"><span class="num">3</span>The Angular dev server via Maven</h2>
+<p>The Angular dev server runs on port 4200, the REST server somewhere else (here <code>localhost:8080</code>). The browser only talks to 4200; the dev server forwards REST calls to the REST server (no CORS setup needed).</p>
 <p><strong>a) Use relative API URLs in the Angular code</strong> &mdash; <code>api/hello</code>, not <code>/api/hello</code>:</p>
 <figure class="code"><figcaption><span>TypeScript</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>@Component({
   selector: 'app-root',
@@ -447,8 +443,8 @@ export class App {
 }</code></pre></figure>
 <p>A relative URL resolves against <code>&lt;base href&gt;</code>: in the WAR that is <code>/myapp/</code>, on the dev server <code>/</code>. The same code works in both places.</p>
 <p><strong>b) Add a proxy configuration</strong> &mdash; <code>frontend/proxy.conf.mjs</code>:</p>
-<figure class="code"><figcaption><span>JavaScript</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code><span class="c">// ng serve forwards every /api/** call to the running Jakarta EE container.</span>
-<span class="c">// BACKEND_URL includes the WAR's context root, e.g. http://localhost:8080/myapp</span>
+<figure class="code"><figcaption><span>JavaScript</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code><span class="c">// ng serve forwards every /api/** call to the running REST server.</span>
+<span class="c">// BACKEND_URL includes the context root, e.g. http://localhost:8080/myapp</span>
 <span class="c">//   → /api/hello is forwarded to http://localhost:8080/myapp/api/hello</span>
 const target = process.env['BACKEND_URL'] ?? 'http://localhost:8080/myapp';
 
@@ -463,15 +459,14 @@ export default {
     "proxyConfig": "proxy.conf.mjs"
   }
 }</code></pre></figure>
-<h2 id="4-the-angular-dev-server-via-maven-profile-ng-serve"><span class="num">4</span>The Angular dev server via Maven: profile <code>ng-serve</code></h2>
-<p>Add these properties:</p>
+<p><strong>d) Add two properties to the pom:</strong></p>
 <figure class="code"><figcaption><span>XML</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>&lt;<span class="t">properties</span>&gt;
-    <span class="c">&lt;!-- where ng serve forwards /api to: the running container incl. context root --&gt;</span>
+    <span class="c">&lt;!-- where ng serve forwards /api to: the running REST server incl. context root --&gt;</span>
     &lt;<span class="t">backend.url</span>&gt;http://localhost:8080/myapp&lt;/<span class="t">backend.url</span>&gt;
     <span class="c">&lt;!-- port of the Angular dev server --&gt;</span>
     &lt;<span class="t">ng.port</span>&gt;4200&lt;/<span class="t">ng.port</span>&gt;
 &lt;/<span class="t">properties</span>&gt;</code></pre></figure>
-<p>…and this profile:</p>
+<p><strong>e) …and the profile <code>ng-serve</code>:</strong></p>
 <figure class="code"><figcaption><span>XML</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>&lt;<span class="t">profiles</span>&gt;
     <span class="c">&lt;!-- mvn -Png-serve : Angular dev server (http://localhost:4200, live reload, /api proxy) --&gt;</span>
     &lt;<span class="t">profile</span>&gt;
@@ -528,83 +523,14 @@ export default {
 <span class="c"># [INFO] Watch mode enabled. Watching for file changes...</span>
 <span class="c"># [INFO]   ➜  Local:   http://localhost:4200/</span>
 
-mvn -Png-serve -Dng.port=4300                               <span class="c"> # 4200 taken</span>
-mvn -Png-serve -Dbackend.url=http://localhost:8180/myapp    <span class="c"> # container on another port</span></code></pre></figure>
+mvn -Png-serve -Dng.port=4300                                  <span class="c"> # 4200 taken</span>
+mvn -Png-serve -Dbackend.url=http://localhost:8190/myapp       <span class="c"> # REST server on another port</span></code></pre></figure>
 <p>Edit a component and save &mdash; the dev server rebuilds in a fraction of a second and pushes the change into the open browser tab:</p>
 <figure class="code"><figcaption><span>Text</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>[INFO] ❯ Changes detected. Rebuilding...
 [INFO] Application bundle generation complete. [0.183 seconds]
 [INFO] Component update sent to client(s).</code></pre></figure>
 <p>"Component update sent" is hot module replacement: templates and styles are swapped without a page reload, form input and component state stay.</p>
-<h2 id="5-the-container-in-dev-mode-example-wildfly"><span class="num">5</span>The container in dev mode (example: WildFly)</h2>
-<p>The frontend side does not care how the container runs &mdash; it only needs <code>backend.url</code>. Any Jakarta EE 10 container works: one started from the IDE, a local installation, or a Maven-driven dev mode. To stay with "Java and Maven only", this step uses the <strong>wildfly-maven-plugin <code>dev</code> goal</strong>: it starts WildFly, deploys the application, watches <code>src/main/java</code> and recompiles and redeploys on every change.</p>
-<figure class="code"><figcaption><span>XML</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>&lt;<span class="t">properties</span>&gt;
-    &lt;<span class="t">wildfly.version</span>&gt;32.0.1.Final&lt;/<span class="t">wildfly.version</span>&gt;
-&lt;/<span class="t">properties</span>&gt;</code></pre></figure>
-<figure class="code"><figcaption><span>XML</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code><span class="c">&lt;!-- mvn -Pwildfly-dev : WildFly with the app deployed, Java changes redeployed automatically --&gt;</span>
-&lt;<span class="t">profile</span>&gt;
-    &lt;<span class="t">id</span>&gt;wildfly-dev&lt;/<span class="t">id</span>&gt;
-    &lt;<span class="t">properties</span>&gt;
-        &lt;<span class="t">skipFrontend</span>&gt;true&lt;/<span class="t">skipFrontend</span>&gt;
-    &lt;/<span class="t">properties</span>&gt;
-    &lt;<span class="t">build</span>&gt;
-        &lt;<span class="t">defaultGoal</span>&gt;initialize wildfly:dev&lt;/<span class="t">defaultGoal</span>&gt;
-        &lt;<span class="t">plugins</span>&gt;
-            &lt;<span class="t">plugin</span>&gt;
-                &lt;<span class="t">groupId</span>&gt;org.apache.maven.plugins&lt;/<span class="t">groupId</span>&gt;
-                &lt;<span class="t">artifactId</span>&gt;maven-dependency-plugin&lt;/<span class="t">artifactId</span>&gt;
-                &lt;<span class="t">version</span>&gt;3.8.1&lt;/<span class="t">version</span>&gt;
-                &lt;<span class="t">executions</span>&gt;
-                    &lt;<span class="t">execution</span>&gt;
-                        &lt;<span class="t">id</span>&gt;unpack-wildfly&lt;/<span class="t">id</span>&gt;
-                        &lt;<span class="t">phase</span>&gt;initialize&lt;/<span class="t">phase</span>&gt;
-                        &lt;<span class="t">goals</span>&gt;
-                            &lt;<span class="t">goal</span>&gt;unpack&lt;/<span class="t">goal</span>&gt;
-                        &lt;/<span class="t">goals</span>&gt;
-                        &lt;<span class="t">configuration</span>&gt;
-                            &lt;<span class="t">artifactItems</span>&gt;
-                                &lt;<span class="t">artifactItem</span>&gt;
-                                    &lt;<span class="t">groupId</span>&gt;org.wildfly&lt;/<span class="t">groupId</span>&gt;
-                                    &lt;<span class="t">artifactId</span>&gt;wildfly-dist&lt;/<span class="t">artifactId</span>&gt;
-                                    &lt;<span class="t">version</span>&gt;<span class="v">${wildfly.version}</span>&lt;/<span class="t">version</span>&gt;
-                                    &lt;<span class="t">type</span>&gt;zip&lt;/<span class="t">type</span>&gt;
-                                    &lt;<span class="t">outputDirectory</span>&gt;<span class="v">${project.build.directory}</span>&lt;/<span class="t">outputDirectory</span>&gt;
-                                &lt;/<span class="t">artifactItem</span>&gt;
-                            &lt;/<span class="t">artifactItems</span>&gt;
-                        &lt;/<span class="t">configuration</span>&gt;
-                    &lt;/<span class="t">execution</span>&gt;
-                &lt;/<span class="t">executions</span>&gt;
-            &lt;/<span class="t">plugin</span>&gt;
-            &lt;<span class="t">plugin</span>&gt;
-                &lt;<span class="t">groupId</span>&gt;org.wildfly.plugins&lt;/<span class="t">groupId</span>&gt;
-                &lt;<span class="t">artifactId</span>&gt;wildfly-maven-plugin&lt;/<span class="t">artifactId</span>&gt;
-                &lt;<span class="t">version</span>&gt;4.2.2.Final&lt;/<span class="t">version</span>&gt;
-                &lt;<span class="t">configuration</span>&gt;
-                    &lt;<span class="t">jbossHome</span>&gt;<span class="v">${project.build.directory}</span>/wildfly-<span class="v">${wildfly.version}</span>&lt;/<span class="t">jbossHome</span>&gt;
-                &lt;/<span class="t">configuration</span>&gt;
-            &lt;/<span class="t">plugin</span>&gt;
-        &lt;/<span class="t">plugins</span>&gt;
-    &lt;/<span class="t">build</span>&gt;
-&lt;/<span class="t">profile</span>&gt;</code></pre></figure>
-<p>How it works:</p>
-<ul><li><strong>The server comes from Maven Central</strong> like any other artifact (<code>wildfly-dist</code> zip), is unpacked into <code>target/</code> in the <code>initialize</code> phase and stays there &mdash; a second start reports <code>wildfly-dist-32.0.1.Final.zip already unpacked.</code></li><li><strong><code>&lt;defaultGoal&gt;initialize wildfly:dev&lt;/defaultGoal&gt;</code></strong> &mdash; the phase unpacks the server, then the <code>dev</code> goal starts it. The <code>dev</code> goal compiles and deploys the application itself (exploded, as <code>myapp.war</code>).</li><li><strong><code>skipFrontend=true</code></strong> &mdash; during development the frontend comes from <code>ng serve</code>; the container serves only the REST API.</li></ul>
-<p><strong>Run it:</strong></p>
-<figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>mvn -Pwildfly-dev
-<span class="c"># WFLYSRV0025: WildFly Full 32.0.1.Final … started in 2353ms</span>
-<span class="c"># WFLYSRV0010: Deployed "myapp.war" (runtime-name : "myapp.war")</span>
-
-curl http://localhost:8080/myapp/api/hello</code></pre></figure>
-<p>Change a Java class and save &mdash; about four seconds later the new code answers.</p>
-<p><strong>Port 8080 already taken</strong> (another local server)? Start WildFly with a port offset and point the dev server at it:</p>
-<figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>mvn -Pwildfly-dev -Dwildfly.serverArgs=-Djboss.socket.binding.port-offset=100 -Dwildfly.port=10090
-mvn -Png-serve -Dbackend.url=http://localhost:8180/myapp</code></pre></figure>
-<p>The offset moves HTTP to 8180 and the management port to 10090; <code>wildfly.port</code> tells the Maven plugin where to find the management interface.</p>
-<p><strong>Stopping:</strong> Ctrl-C stops Maven and WildFly together. If a server survives anyway (e.g. the terminal was closed), stop it through its management port:</p>
-<figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>mvn -Pwildfly-dev wildfly:shutdown                      <span class="c"> # default ports</span>
-mvn -Pwildfly-dev wildfly:shutdown -Dwildfly.port=10090 <span class="c"> # with port offset</span></code></pre></figure>
-<aside class="note"><p><strong>Match WildFly and the JDK.</strong> WildFly 32 does not start on Java 25 (<code>Enabling a Security Manager is not supported.</code>); it runs on Java 17 and 21. Use a WildFly version that supports the JDK on your developers' machines.</p></aside>
-<p><strong>Variations:</strong></p>
-<ul><li><em>Smaller server:</em> instead of unpacking the full distribution, the wildfly-maven-plugin can provision a trimmed server with Galleon (<code>featurePacks</code> + <code>layers</code>, e.g. only <code>jaxrs-server</code>). Same <code>wildfly:dev</code> goal, no unpack execution.</li><li><em>Other containers:</em> most have a comparable Maven dev mode (e.g. Open Liberty's <code>liberty:dev</code>). Only <code>backend.url</code> has to match.</li><li><em>IDE deployment:</em> if the team already deploys from IntelliJ/Eclipse, keep that and only use <code>mvn -Png-serve</code>.</li></ul>
-<h2 id="6-angular-cli-and-pnpm-for-daily-work"><span class="num">6</span>Angular CLI and pnpm for daily work</h2>
+<h2 id="4-angular-cli-and-pnpm-for-daily-work"><span class="num">4</span>Angular CLI and pnpm for daily work</h2>
 <p>All CLI commands run through the Node and pnpm in <code>.tooling/</code>. There are two ways.</p>
 <p><strong>a) Pure Maven</strong> &mdash; no extra files, but verbose:</p>
 <figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>mvn frontend:pnpm -Dfrontend.pnpm.arguments="exec ng generate component features/greeting"
@@ -642,19 +568,18 @@ set "PATH=%NODE_DIR%;%PATH%"
 <p><strong>Check:</strong></p>
 <figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>./pnpmw --version             <span class="c"> # 11.10.0</span>
 ./pnpmw ng version            <span class="c"> # Angular CLI 22.0.5, Node.js 24.15.0</span></code></pre></figure>
-<h2 id="7-ide-setup"><span class="num">7</span>IDE setup</h2>
+<h2 id="5-ide-setup"><span class="num">5</span>IDE setup</h2>
 <p><strong>IntelliJ IDEA / WebStorm</strong></p>
-<ul><li><em>Settings → Languages &amp; Frameworks → Node.js</em>: Node interpreter <code>&lt;project&gt;/.tooling/node/node</code> (Windows: <code>node.exe</code>), package manager <code>&lt;project&gt;/.tooling/node/node_modules/pnpm</code>. Code completion, the Angular language service, running single tests from the gutter &mdash; all with the project's versions.</li><li><em>Run configurations</em> (type Maven): <strong>ng serve</strong> with command line <code>-Png-serve</code>, <strong>WildFly dev</strong> with <code>-Pwildfly-dev</code>. A <em>Compound</em> run configuration starts both with one click.</li></ul>
+<ul><li><em>Settings → Languages &amp; Frameworks → Node.js</em>: Node interpreter <code>&lt;project&gt;/.tooling/node/node</code> (Windows: <code>node.exe</code>), package manager <code>&lt;project&gt;/.tooling/node/node_modules/pnpm</code>. Code completion, the Angular language service, running single tests from the gutter &mdash; all with the project's versions.</li><li><em>Run configuration</em> (type Maven) <strong>ng serve</strong> with command line <code>-Png-serve</code>.</li></ul>
 <p><strong>VS Code</strong></p>
-<ul><li>Two terminals (<code>mvn -Pwildfly-dev</code>, <code>mvn -Png-serve</code>) or two entries in <code>.vscode/tasks.json</code> with the same commands.</li><li>Use <code>./pnpmw …</code> in the integrated terminal for CLI commands.</li></ul>
-<h2 id="8-daily-work-cheat-sheet"><span class="num">8</span>Daily work &mdash; cheat sheet</h2>
-<p><strong>Start of the day</strong> (two terminals, both stay open):</p>
-<figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>mvn -Pwildfly-dev    <span class="c"> # terminal 1: container + REST API, Java hot redeploy</span>
-mvn -Png-serve       <span class="c"> # terminal 2: Angular dev server → open http://localhost:4200</span></code></pre></figure>
-<div class="table"><table><thead><tr><th>Task</th><th>Command</th></tr></thead><tbody><tr><td>Work on the UI</td><td>edit <code>frontend/src/**</code> &mdash; the browser updates itself</td></tr><tr><td>Work on the REST API</td><td>edit <code>src/main/java/**</code> &mdash; redeployed in seconds</td></tr><tr><td>New component / service / …</td><td><code>./pnpmw ng generate component features/foo</code></td></tr><tr><td>Add a library</td><td><code>./pnpmw add date-fns</code> (commit <code>package.json</code> <strong>and</strong> <code>pnpm-lock.yaml</code>)</td></tr><tr><td>Unit tests while coding</td><td><code>./pnpmw test --watch</code> (third terminal, re-runs on save)</td></tr><tr><td>Unit tests once</td><td><code>./pnpmw test</code></td></tr><tr><td>After <code>git pull</code></td><td>nothing for the frontend (<code>mvn -Png-serve</code> runs <code>pnpm install</code>); restart <code>-Pwildfly-dev</code> if <code>pom.xml</code> changed</td></tr><tr><td>Update Angular</td><td><code>./pnpmw ng update @angular/core @angular/cli</code></td></tr><tr><td>Update Node / pnpm</td><td>change <code>node.version</code> / <code>pnpm.version</code> in the pom <strong>and</strong> <code>packageManager</code> in <code>package.json</code></td></tr><tr><td>Deployable WAR</td><td><code>mvn package</code> → <code>target/myapp.war</code> (frontend built and tested)</td></tr><tr><td>Java-only build</td><td><code>mvn package -DskipFrontend</code></td></tr></tbody></table></div>
-<p><strong>Which URL?</strong> During development always <strong>http://localhost:4200</strong>. The container's own URL (<code>localhost:8080/myapp/</code>) serves whatever frontend build was last copied into the deployment &mdash; usually an old one.</p>
-<h2 id="9-troubleshooting"><span class="num">9</span>Troubleshooting</h2>
-<div class="table"><table><thead><tr><th>Symptom</th><th>Cause / fix</th></tr></thead><tbody><tr><td><code>mvn -Png-serve</code> hangs before "Local:"</td><td>an interactive CLI prompt; keep <code>NG_CLI_ANALYTICS=false</code> in the profile</td></tr><tr><td><code>/api/...</code> returns 404 or 504 on port 4200</td><td>container not running, or wrong <code>-Dbackend.url</code> (context root included?)</td></tr><tr><td><code>Port 4200 is already in use</code></td><td>another dev server is still running; stop it or use <code>-Dng.port=4300</code></td></tr><tr><td>WildFly: <code>Address already in use</code> (8080 / 9990)</td><td>another server runs locally → port offset (step 5)</td></tr><tr><td>WildFly survives after closing the terminal</td><td><code>mvn -Pwildfly-dev wildfly:shutdown</code></td></tr><tr><td>WildFly: <code>Enabling a Security Manager is not supported</code></td><td>WildFly too old for the JDK (step 5)</td></tr><tr><td>Build fails with <code>ERR_PNPM_OUTDATED_LOCKFILE</code></td><td><code>package.json</code> changed without <code>pnpm-lock.yaml</code>; run <code>./pnpmw install</code> and commit the lock file</td></tr><tr><td><code>mvn frontend:pnpm …</code> uses wrong directory / version</td><td>the configuration is still inside an <code>&lt;execution&gt;</code>; move it to plugin level (step 1)</td></tr><tr><td>Company network: downloads blocked</td><td>Maven's proxy settings are passed on to pnpm automatically. For a Nexus/Artifactory mirror set <code>&lt;nodeDownloadRoot&gt;</code> / <code>&lt;pnpmDownloadRoot&gt;</code> (and <code>&lt;serverId&gt;</code> for credentials from <code>settings.xml</code>) at plugin level, and <code>registry=…</code> in <code>frontend/.npmrc</code></td></tr></tbody></table></div>
+<ul><li>Run <code>mvn -Png-serve</code> in a terminal, or add it as an entry in <code>.vscode/tasks.json</code>.</li><li>Use <code>./pnpmw …</code> in the integrated terminal for CLI commands.</li></ul>
+<h2 id="6-daily-work-cheat-sheet"><span class="num">6</span>Daily work &mdash; cheat sheet</h2>
+<p><strong>Start of the day</strong> &mdash; make sure the REST server is reachable, then:</p>
+<figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>mvn -Png-serve       <span class="c"> # Angular dev server → open http://localhost:4200</span></code></pre></figure>
+<div class="table"><table><thead><tr><th>Task</th><th>Command</th></tr></thead><tbody><tr><td>Work on the UI</td><td>edit <code>frontend/src/**</code> &mdash; the browser updates itself</td></tr><tr><td>New component / service / …</td><td><code>./pnpmw ng generate component features/foo</code></td></tr><tr><td>Add a library</td><td><code>./pnpmw add date-fns</code> (commit <code>package.json</code> <strong>and</strong> <code>pnpm-lock.yaml</code>)</td></tr><tr><td>Unit tests while coding</td><td><code>./pnpmw test --watch</code> (second terminal, re-runs on save)</td></tr><tr><td>Unit tests once</td><td><code>./pnpmw test</code></td></tr><tr><td>After <code>git pull</code></td><td>nothing &mdash; <code>mvn -Png-serve</code> runs <code>pnpm install</code> on every start</td></tr><tr><td>Update Angular</td><td><code>./pnpmw ng update @angular/core @angular/cli</code></td></tr><tr><td>Update Node / pnpm</td><td>change <code>node.version</code> / <code>pnpm.version</code> in the pom <strong>and</strong> <code>packageManager</code> in <code>package.json</code></td></tr><tr><td>Deployable WAR</td><td><code>mvn package</code> → <code>target/myapp.war</code> (frontend built and tested)</td></tr></tbody></table></div>
+<p><strong>Which URL?</strong> During development always <strong>http://localhost:4200</strong>. A WAR that is deployed somewhere contains the frontend of its last <code>mvn package</code> &mdash; usually an old one.</p>
+<h2 id="7-troubleshooting"><span class="num">7</span>Troubleshooting</h2>
+<div class="table"><table><thead><tr><th>Symptom</th><th>Cause / fix</th></tr></thead><tbody><tr><td><code>mvn -Png-serve</code> hangs before "Local:"</td><td>an interactive CLI prompt; keep <code>NG_CLI_ANALYTICS=false</code> in the profile</td></tr><tr><td><code>/api/...</code> returns 404 or 504 on port 4200</td><td>REST server not running, or wrong <code>-Dbackend.url</code> (context root included?)</td></tr><tr><td><code>Port 4200 is already in use</code></td><td>another dev server is still running; stop it or use <code>-Dng.port=4300</code></td></tr><tr><td>Build fails with <code>ERR_PNPM_OUTDATED_LOCKFILE</code></td><td><code>package.json</code> changed without <code>pnpm-lock.yaml</code>; run <code>./pnpmw install</code> and commit the lock file</td></tr><tr><td><code>mvn frontend:pnpm …</code> uses wrong directory / version</td><td>the configuration is still inside an <code>&lt;execution&gt;</code>; move it to plugin level (step 1)</td></tr><tr><td>Company network: downloads blocked</td><td>Maven's proxy settings are passed on to pnpm automatically. For a Nexus/Artifactory mirror set <code>&lt;nodeDownloadRoot&gt;</code> / <code>&lt;pnpmDownloadRoot&gt;</code> (and <code>&lt;serverId&gt;</code> for credentials from <code>settings.xml</code>) at plugin level, and <code>registry=…</code> in <code>frontend/.npmrc</code></td></tr></tbody></table></div>
 <h2 id="appendix-the-complete-pomxml">Appendix: the complete <code>pom.xml</code></h2>
 <p>The verified sample project, all steps applied:</p>
 <figure class="code"><figcaption><span>XML</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>&lt;?<span class="t">xml</span> <span class="a">version</span>=<span class="s">"1.0"</span> <span class="a">encoding</span>=<span class="s">"UTF-8"</span>?&gt;
@@ -676,13 +601,10 @@ mvn -Png-serve       <span class="c"> # terminal 2: Angular dev server → open 
         <span class="c">&lt;!-- frontend toolchain: keep in sync with "packageManager" in frontend/package.json --&gt;</span>
         &lt;<span class="t">node.version</span>&gt;v24.15.0&lt;/<span class="t">node.version</span>&gt;
         &lt;<span class="t">pnpm.version</span>&gt;v11.10.0&lt;/<span class="t">pnpm.version</span>&gt;
-        <span class="c">&lt;!-- -DskipFrontend: build only the Java part (fast backend-only rebuilds) --&gt;</span>
-        &lt;<span class="t">skipFrontend</span>&gt;false&lt;/<span class="t">skipFrontend</span>&gt;
-        <span class="c">&lt;!-- where ng serve forwards /api to: the running container incl. context root --&gt;</span>
+        <span class="c">&lt;!-- where ng serve forwards /api to: the running REST server incl. context root --&gt;</span>
         &lt;<span class="t">backend.url</span>&gt;http://localhost:8080/myapp&lt;/<span class="t">backend.url</span>&gt;
         <span class="c">&lt;!-- port of the Angular dev server --&gt;</span>
         &lt;<span class="t">ng.port</span>&gt;4200&lt;/<span class="t">ng.port</span>&gt;
-        &lt;<span class="t">wildfly.version</span>&gt;32.0.1.Final&lt;/<span class="t">wildfly.version</span>&gt;
     &lt;/<span class="t">properties</span>&gt;
 
     &lt;<span class="t">dependencies</span>&gt;
@@ -707,7 +629,6 @@ mvn -Png-serve       <span class="c"> # terminal 2: Angular dev server → open 
                     &lt;<span class="t">installDirectory</span>&gt;.tooling&lt;/<span class="t">installDirectory</span>&gt;
                     &lt;<span class="t">nodeVersion</span>&gt;<span class="v">${node.version}</span>&lt;/<span class="t">nodeVersion</span>&gt;
                     &lt;<span class="t">pnpmVersion</span>&gt;<span class="v">${pnpm.version}</span>&lt;/<span class="t">pnpmVersion</span>&gt;
-                    &lt;<span class="t">skip</span>&gt;<span class="v">${skipFrontend}</span>&lt;/<span class="t">skip</span>&gt;
                 &lt;/<span class="t">configuration</span>&gt;
                 &lt;<span class="t">executions</span>&gt;
                     &lt;<span class="t">execution</span>&gt;
@@ -804,52 +725,6 @@ mvn -Png-serve       <span class="c"> # terminal 2: Angular dev server → open 
                                 &lt;/<span class="t">configuration</span>&gt;
                             &lt;/<span class="t">execution</span>&gt;
                         &lt;/<span class="t">executions</span>&gt;
-                    &lt;/<span class="t">plugin</span>&gt;
-                &lt;/<span class="t">plugins</span>&gt;
-            &lt;/<span class="t">build</span>&gt;
-        &lt;/<span class="t">profile</span>&gt;
-
-        <span class="c">&lt;!-- mvn -Pwildfly-dev : WildFly with the app deployed, Java changes redeployed automatically --&gt;</span>
-        &lt;<span class="t">profile</span>&gt;
-            &lt;<span class="t">id</span>&gt;wildfly-dev&lt;/<span class="t">id</span>&gt;
-            &lt;<span class="t">properties</span>&gt;
-                &lt;<span class="t">skipFrontend</span>&gt;true&lt;/<span class="t">skipFrontend</span>&gt;
-            &lt;/<span class="t">properties</span>&gt;
-            &lt;<span class="t">build</span>&gt;
-                &lt;<span class="t">defaultGoal</span>&gt;initialize wildfly:dev&lt;/<span class="t">defaultGoal</span>&gt;
-                &lt;<span class="t">plugins</span>&gt;
-                    &lt;<span class="t">plugin</span>&gt;
-                        &lt;<span class="t">groupId</span>&gt;org.apache.maven.plugins&lt;/<span class="t">groupId</span>&gt;
-                        &lt;<span class="t">artifactId</span>&gt;maven-dependency-plugin&lt;/<span class="t">artifactId</span>&gt;
-                        &lt;<span class="t">version</span>&gt;3.8.1&lt;/<span class="t">version</span>&gt;
-                        &lt;<span class="t">executions</span>&gt;
-                            &lt;<span class="t">execution</span>&gt;
-                                &lt;<span class="t">id</span>&gt;unpack-wildfly&lt;/<span class="t">id</span>&gt;
-                                &lt;<span class="t">phase</span>&gt;initialize&lt;/<span class="t">phase</span>&gt;
-                                &lt;<span class="t">goals</span>&gt;
-                                    &lt;<span class="t">goal</span>&gt;unpack&lt;/<span class="t">goal</span>&gt;
-                                &lt;/<span class="t">goals</span>&gt;
-                                &lt;<span class="t">configuration</span>&gt;
-                                    &lt;<span class="t">artifactItems</span>&gt;
-                                        &lt;<span class="t">artifactItem</span>&gt;
-                                            &lt;<span class="t">groupId</span>&gt;org.wildfly&lt;/<span class="t">groupId</span>&gt;
-                                            &lt;<span class="t">artifactId</span>&gt;wildfly-dist&lt;/<span class="t">artifactId</span>&gt;
-                                            &lt;<span class="t">version</span>&gt;<span class="v">${wildfly.version}</span>&lt;/<span class="t">version</span>&gt;
-                                            &lt;<span class="t">type</span>&gt;zip&lt;/<span class="t">type</span>&gt;
-                                            &lt;<span class="t">outputDirectory</span>&gt;<span class="v">${project.build.directory}</span>&lt;/<span class="t">outputDirectory</span>&gt;
-                                        &lt;/<span class="t">artifactItem</span>&gt;
-                                    &lt;/<span class="t">artifactItems</span>&gt;
-                                &lt;/<span class="t">configuration</span>&gt;
-                            &lt;/<span class="t">execution</span>&gt;
-                        &lt;/<span class="t">executions</span>&gt;
-                    &lt;/<span class="t">plugin</span>&gt;
-                    &lt;<span class="t">plugin</span>&gt;
-                        &lt;<span class="t">groupId</span>&gt;org.wildfly.plugins&lt;/<span class="t">groupId</span>&gt;
-                        &lt;<span class="t">artifactId</span>&gt;wildfly-maven-plugin&lt;/<span class="t">artifactId</span>&gt;
-                        &lt;<span class="t">version</span>&gt;4.2.2.Final&lt;/<span class="t">version</span>&gt;
-                        &lt;<span class="t">configuration</span>&gt;
-                            &lt;<span class="t">jbossHome</span>&gt;<span class="v">${project.build.directory}</span>/wildfly-<span class="v">${wildfly.version}</span>&lt;/<span class="t">jbossHome</span>&gt;
-                        &lt;/<span class="t">configuration</span>&gt;
                     &lt;/<span class="t">plugin</span>&gt;
                 &lt;/<span class="t">plugins</span>&gt;
             &lt;/<span class="t">build</span>&gt;
