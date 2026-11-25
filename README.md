@@ -28,6 +28,7 @@ provides the REST APIs (locally, started from the IDE, or a shared dev/test serv
 > **Try it first?** The [`demo/`](demo/README.md) folder contains a minimal
 > hello-world WAR project with all steps applied, plus a REST stub that runs with
 > the JDK's `jwebserver` — `mvn -Png-serve` works right after checkout.
+> Root pom is a parent with modules? See [`demo-multi-module/`](demo-multi-module/README.md).
 
 ## The result at a glance
 

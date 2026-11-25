@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- root pom = parent + aggregator; the Angular app lives in the module webapp -->
+    <groupId>com.example</groupId>
+    <artifactId>myapp-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>api</module>
+        <module>webapp</module>
+    </modules>
+
+    <properties>
+        <maven.compiler.release>17</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- frontend toolchain: Node.js (npm is bundled with it) -->
+        <node.version>v24.15.0</node.version>
+        <!-- where ng serve forwards /api to: the running REST server incl. context root -->
+        <backend.url>http://localhost:8080/myapp</backend.url>
+        <!-- port of the Angular dev server -->
+        <ng.port>4200</ng.port>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>jakarta.platform</groupId>
+                <artifactId>jakarta.jakartaee-api</artifactId>
+                <version>10.0.0</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- pluginManagement, not plugins: otherwise EVERY module would inherit
+                     the executions and try to install Node and build a frontend/ folder -->
+                <plugin>
+                    <groupId>com.github.eirslett</groupId>
+                    <artifactId>frontend-maven-plugin</artifactId>
+                    <version>1.15.1</version>
+                    <!-- plugin-level: also used by command-line calls (mvn frontend:npm ...);
+                         paths are relative to the module that uses the plugin (webapp) -->
+                    <configuration>
+                        <workingDirectory>frontend</workingDirectory>
+                        <installDirectory>.tooling</installDirectory>
+                        <nodeVersion>${node.version}</nodeVersion>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>3.4.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <profiles>
+        <!-- mvn -Png-serve (from this directory): Angular dev server of the module webapp.
+             Here only the default goal; the executions are in webapp/pom.xml.
+             Without this, "mvn -Png-serve" in the root fails with "No goals have been
+             specified": the default goal is taken from the pom in the current directory. -->
+        <profile>
+            <id>ng-serve</id>
+            <build>
+                <defaultGoal>validate</defaultGoal>
+            </build>
+        </profile>
+    </profiles>
+</project>

@@ -1,0 +1,18 @@
+#!/bin/sh
+# npmw – runs the project's own npm (the one Maven installed into webapp/.tooling/)
+# inside webapp/frontend/. Installs Node + npm via Maven first if they are missing.
+#   ./npmw exec -- ng generate component features/foo
+#   ./npmw install date-fns
+# Multi-module: Maven is called with -f webapp/pom.xml, so only the module with
+# the frontend runs, not the whole reactor.
+set -e
+BASE=$(cd "$(dirname "$0")" && pwd)
+MODULE="$BASE/webapp"
+NODE_DIR="$MODULE/.tooling/node"
+if [ ! -x "$NODE_DIR/node" ]; then
+  mvn -q -f "$MODULE/pom.xml" frontend:install-node-and-npm
+fi
+PATH="$NODE_DIR:$PATH"
+export PATH
+cd "$MODULE/frontend"
+exec "$NODE_DIR/node" "$NODE_DIR/node_modules/npm/bin/npm-cli.js" "$@"
