@@ -281,7 +281,7 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; }
 <div class="layout">
   <nav class="toc" aria-label="Contents">
     <p class="brand">Contents</p>
-    <ol><li><a href="#the-result-at-a-glance"><span class="num dot"></span>The result at a glance</a></li><li><a href="#0-the-starting-point"><span class="num">0</span>The starting point</a></li><li><a href="#1-plugin-level-configuration-and-a-stable-tool-location"><span class="num">1</span>Plugin-level configuration and a stable tool location</a></li><li><a href="#2-unit-tests-in-the-build"><span class="num">2</span>Unit tests in the build</a></li><li><a href="#3-the-angular-dev-server-via-maven"><span class="num">3</span>The Angular dev server via Maven</a></li><li><a href="#4-angular-cli-and-pnpm-for-daily-work"><span class="num">4</span>Angular CLI and pnpm for daily work</a></li><li><a href="#5-ide-setup"><span class="num">5</span>IDE setup</a></li><li><a href="#6-daily-work-cheat-sheet"><span class="num">6</span>Daily work &mdash; cheat sheet</a></li><li><a href="#7-troubleshooting"><span class="num">7</span>Troubleshooting</a></li><li><a href="#appendix-the-complete-pomxml"><span class="num dot"></span>Appendix: the complete pom.xml</a></li></ol>
+    <ol><li><a href="#the-result-at-a-glance"><span class="num dot"></span>The result at a glance</a></li><li><a href="#0-the-starting-point"><span class="num">0</span>The starting point</a></li><li><a href="#1-plugin-level-configuration-and-a-stable-tool-location"><span class="num">1</span>Plugin-level configuration and a stable tool location</a></li><li><a href="#2-unit-tests-in-the-build"><span class="num">2</span>Unit tests in the build</a></li><li><a href="#3-the-angular-dev-server-via-maven"><span class="num">3</span>The Angular dev server via Maven</a></li><li><a href="#4-angular-cli-and-npm-for-daily-work"><span class="num">4</span>Angular CLI and npm for daily work</a></li><li><a href="#5-ide-setup"><span class="num">5</span>IDE setup</a></li><li><a href="#6-daily-work-cheat-sheet"><span class="num">6</span>Daily work &mdash; cheat sheet</a></li><li><a href="#7-troubleshooting"><span class="num">7</span>Troubleshooting</a></li><li><a href="#appendix-the-complete-pomxml"><span class="num dot"></span>Appendix: the complete pom.xml</a></li></ol>
     <button type="button" class="theme-toggle" id="theme">Toggle theme</button>
   </nav>
   <main>
@@ -291,29 +291,30 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; }
       <p class="lead"><strong>From "the frontend-maven-plugin packs Angular into the WAR" to a full daily frontend development setup &mdash; on a machine that has nothing but Java and Maven.</strong></p>
     </header>
 <p>Many Jakarta EE teams already use the <a href="https://github.com/eirslett/frontend-maven-plugin">frontend-maven-plugin</a> ("eirslett plugin") to build an Angular app and package it into a WAR. That solves the <em>build</em>. This tutorial adds the frontend <em>development cycle</em> on top of it:</p>
-<ul><li>the Angular dev server (<code>ng serve</code>) with live reload and hot module replacement,</li><li>REST calls from the dev server forwarded to the server that provides the REST APIs,</li><li>the Angular CLI (<code>ng generate</code>, <code>ng update</code>, …) and pnpm for daily work,</li><li>unit tests in the build and in watch mode,</li></ul>
-<p>…without anyone installing Node.js, pnpm or the Angular CLI by hand. Maven downloads a pinned Node.js and pnpm into the project; the Angular CLI is an ordinary dev dependency in <code>node_modules</code>. Nothing is installed globally.</p>
+<ul><li>the Angular dev server (<code>ng serve</code>) with live reload and hot module replacement,</li><li>REST calls from the dev server forwarded to the server that provides the REST APIs,</li><li>the Angular CLI (<code>ng generate</code>, <code>ng update</code>, …) and npm for daily work,</li><li>unit tests in the build and in watch mode,</li></ul>
+<p>…without anyone installing Node.js, npm or the Angular CLI by hand. Maven downloads a pinned Node.js (npm is bundled with it) into the project; the Angular CLI is an ordinary dev dependency in <code>node_modules</code>. Nothing is installed globally.</p>
 <p>The backend is out of scope: the tutorial assumes there is a running server that provides the REST APIs (locally, started from the IDE, or a shared dev/test server).</p>
-<aside class="note"><p><strong>Verified setup.</strong> Every command in this tutorial was run against a sample WAR project with: Maven 3.9.14 · frontend-maven-plugin 1.15.1 · Node.js 24.15.0 · pnpm 11.10.0 · Angular 22.0.5 · macOS. The Windows wrapper script in step 4 was <strong>not</strong> tested.</p></aside>
+<aside class="note"><p><strong>Verified setup.</strong> Every command in this tutorial was run against a sample WAR project with: Maven 3.9.14 · frontend-maven-plugin 1.15.1 · Node.js 24.15.0 · npm 11.12.1 (bundled) · Angular 22.3.0 · macOS. The Windows wrapper script in step 4 was <strong>not</strong> tested.</p></aside>
 <h2 id="the-result-at-a-glance">The result at a glance</h2>
-<div class="table"><table><thead><tr><th>You want to …</th><th>Command (from the WAR module)</th></tr></thead><tbody><tr><td>start the Angular dev server (live reload, <code>/api</code> proxy)</td><td><code>mvn -Png-serve</code></td></tr><tr><td>run any Angular CLI / pnpm command</td><td><code>./pnpmw ng generate component features/foo</code></td></tr><tr><td>run unit tests in watch mode</td><td><code>./pnpmw test --watch</code></td></tr><tr><td>build the deployable WAR (incl. frontend tests)</td><td><code>mvn package</code></td></tr></tbody></table></div>
+<div class="table"><table><thead><tr><th>You want to …</th><th>Command (from the WAR module)</th></tr></thead><tbody><tr><td>start the Angular dev server (live reload, <code>/api</code> proxy)</td><td><code>mvn -Png-serve</code></td></tr><tr><td>run any Angular CLI command</td><td><code>./npmw exec -- ng generate component features/foo</code></td></tr><tr><td>run any npm command</td><td><code>./npmw install date-fns</code></td></tr><tr><td>run unit tests in watch mode</td><td><code>./npmw test -- --watch</code></td></tr><tr><td>build the deployable WAR (incl. frontend tests)</td><td><code>mvn package</code></td></tr></tbody></table></div>
 <p>Daily work happens on <strong>http://localhost:4200</strong> (Angular dev server). It serves the frontend from memory and forwards every <code>/api/**</code> call to the REST server.</p>
 <figure class="code diagram"><figcaption><span>Diagram</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>browser ──► localhost:4200                      ng serve
                │                                frontend/src, hot reload
                │
                └── /api/** ──► localhost:8080/myapp/api/**
                                                 REST server (already running)</code></pre></figure>
+<aside class="note"><p><strong>npm and <code>--</code>.</strong> npm reads options before a <code>--</code> as its <em>own</em> options. Everything meant for the script or tool goes after <code>--</code>: <code>npm start -- --port 4300</code>, <code>npm test -- --watch</code>, <code>npm exec -- ng generate … --skip-tests</code>. Without the <code>--</code>, npm silently swallows options such as <code>--skip-tests</code> (verified: the spec file was generated anyway).</p></aside>
 <h2 id="0-the-starting-point"><span class="num">0</span>The starting point</h2>
 <p>The tutorial assumes a WAR module with the Angular app in a <code>frontend/</code> subfolder. Adapt paths if your layout differs (e.g. a separate frontend module).</p>
 <figure class="code diagram"><figcaption><span>Diagram</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>myapp/
 ├── pom.xml                      packaging: war
 ├── src/main/…                   server side (not touched by this tutorial)
 └── frontend/
-    ├── package.json             "packageManager": "pnpm@11.10.0"
-    ├── pnpm-lock.yaml
+    ├── package.json
+    ├── package-lock.json
     ├── angular.json
     └── src/…</code></pre></figure>
-<p>This is what "already works" with the plugin: Node and pnpm are downloaded, the Angular app is built, and the Maven WAR plugin copies the build output into the WAR.</p>
+<p>This is what "already works" with the plugin: Node and npm are downloaded, the Angular app is built, and the Maven WAR plugin copies the build output into the WAR.</p>
 <figure class="code"><figcaption><span>XML</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>&lt;<span class="t">plugin</span>&gt;
     &lt;<span class="t">groupId</span>&gt;com.github.eirslett&lt;/<span class="t">groupId</span>&gt;
     &lt;<span class="t">artifactId</span>&gt;frontend-maven-plugin&lt;/<span class="t">artifactId</span>&gt;
@@ -324,28 +325,27 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; }
     &lt;/<span class="t">configuration</span>&gt;
     &lt;<span class="t">executions</span>&gt;
         &lt;<span class="t">execution</span>&gt;
-            &lt;<span class="t">id</span>&gt;install-node-and-pnpm&lt;/<span class="t">id</span>&gt;
+            &lt;<span class="t">id</span>&gt;install-node-and-npm&lt;/<span class="t">id</span>&gt;
             &lt;<span class="t">goals</span>&gt;
-                &lt;<span class="t">goal</span>&gt;install-node-and-pnpm&lt;/<span class="t">goal</span>&gt;
+                &lt;<span class="t">goal</span>&gt;install-node-and-npm&lt;/<span class="t">goal</span>&gt;
             &lt;/<span class="t">goals</span>&gt;
             &lt;<span class="t">configuration</span>&gt;
                 &lt;<span class="t">nodeVersion</span>&gt;v24.15.0&lt;/<span class="t">nodeVersion</span>&gt;
-                &lt;<span class="t">pnpmVersion</span>&gt;v11.10.0&lt;/<span class="t">pnpmVersion</span>&gt;
             &lt;/<span class="t">configuration</span>&gt;
         &lt;/<span class="t">execution</span>&gt;
         &lt;<span class="t">execution</span>&gt;
-            &lt;<span class="t">id</span>&gt;pnpm-install&lt;/<span class="t">id</span>&gt;
+            &lt;<span class="t">id</span>&gt;npm-ci&lt;/<span class="t">id</span>&gt;
             &lt;<span class="t">goals</span>&gt;
-                &lt;<span class="t">goal</span>&gt;pnpm&lt;/<span class="t">goal</span>&gt;
+                &lt;<span class="t">goal</span>&gt;npm&lt;/<span class="t">goal</span>&gt;
             &lt;/<span class="t">goals</span>&gt;
             &lt;<span class="t">configuration</span>&gt;
-                &lt;<span class="t">arguments</span>&gt;install --ignore-scripts --frozen-lockfile&lt;/<span class="t">arguments</span>&gt;
+                &lt;<span class="t">arguments</span>&gt;ci --ignore-scripts&lt;/<span class="t">arguments</span>&gt;
             &lt;/<span class="t">configuration</span>&gt;
         &lt;/<span class="t">execution</span>&gt;
         &lt;<span class="t">execution</span>&gt;
-            &lt;<span class="t">id</span>&gt;pnpm-build&lt;/<span class="t">id</span>&gt;
+            &lt;<span class="t">id</span>&gt;npm-build&lt;/<span class="t">id</span>&gt;
             &lt;<span class="t">goals</span>&gt;
-                &lt;<span class="t">goal</span>&gt;pnpm&lt;/<span class="t">goal</span>&gt;
+                &lt;<span class="t">goal</span>&gt;npm&lt;/<span class="t">goal</span>&gt;
             &lt;/<span class="t">goals</span>&gt;
             &lt;<span class="t">configuration</span>&gt;
                 &lt;<span class="t">arguments</span>&gt;run build&lt;/<span class="t">arguments</span>&gt;
@@ -365,6 +365,7 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; }
         &lt;/<span class="t">webResources</span>&gt;
     &lt;/<span class="t">configuration</span>&gt;
 &lt;/<span class="t">plugin</span>&gt;</code></pre></figure>
+<p><code>npm ci</code> installs exactly what <code>package-lock.json</code> says and fails if <code>package.json</code> and the lock file disagree &mdash; the right choice for a build. <code>--ignore-scripts</code> keeps the lifecycle scripts of dependencies from running.</p>
 <p>The WAR is deployed under a context root (here <code>/myapp</code>), so the production build uses that as base href. Only the <strong>production</strong> configuration in <code>angular.json</code> gets it; the dev server keeps <code>/</code>:</p>
 <figure class="code"><figcaption><span>JSON</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>"configurations": {
   "production": {
@@ -376,49 +377,48 @@ footer { margin-top: 64px; color: var(--muted); font-size: 13px; }
 <div class="table"><table><thead><tr><th>Need</th><th>Status with the plugin alone</th></tr></thead><tbody><tr><td>Angular dev server with live reload</td><td>✗ only full builds; every change = <code>mvn package</code> + redeploy</td></tr><tr><td>Frontend talks to the REST server during development</td><td>✗</td></tr><tr><td>Angular CLI (<code>ng generate</code>, <code>ng update</code>)</td><td>✗ Node is only reachable from inside Maven</td></tr><tr><td>Unit tests</td><td>✗ not part of the build</td></tr><tr><td>IDE support (Node interpreter)</td><td>✗ Node lives in <code>target/</code> and disappears with <code>mvn clean</code></td></tr></tbody></table></div>
 <h2 id="1-plugin-level-configuration-and-a-stable-tool-location"><span class="num">1</span>Plugin-level configuration and a stable tool location</h2>
 <p>Two small changes make the plugin usable for more than the build.</p>
-<p><strong>a) Versions and directories move to the plugin-level <code>&lt;configuration&gt;</code>.</strong> Settings inside an <code>&lt;execution&gt;</code> only apply to that execution. Command-line calls such as <code>mvn frontend:pnpm …</code> (step 4) run as execution <code>default-cli</code> and only see the plugin-level configuration.</p>
-<p><strong>b) The tools move from <code>target/</code> to <code>.tooling/</code>.</strong> <code>mvn clean</code> deletes <code>target/</code>, and with it Node and pnpm. Maven caches the downloads in <code>~/.m2</code>, so a reinstall is quick, but the IDE's Node interpreter path (step 5) and the <code>pnpmw</code> wrapper (step 4) need a path that stays put.</p>
+<p><strong>a) The Node version and the directories move to the plugin-level <code>&lt;configuration&gt;</code>.</strong> Settings inside an <code>&lt;execution&gt;</code> only apply to that execution. Command-line calls such as <code>mvn frontend:npm …</code> (step 4) run as execution <code>default-cli</code> and only see the plugin-level configuration.</p>
+<p><strong>b) The tools move from <code>target/</code> to <code>.tooling/</code>.</strong> <code>mvn clean</code> deletes <code>target/</code>, and with it Node and npm. Maven caches the downloads in <code>~/.m2</code>, so a reinstall is quick, but the IDE's Node interpreter path (step 5) and the <code>npmw</code> wrapper (step 4) need a path that stays put.</p>
 <figure class="code"><figcaption><span>XML</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>&lt;<span class="t">properties</span>&gt;
-    <span class="c">&lt;!-- frontend toolchain: keep in sync with "packageManager" in frontend/package.json --&gt;</span>
+    <span class="c">&lt;!-- frontend toolchain: Node.js (npm is bundled with it) --&gt;</span>
     &lt;<span class="t">node.version</span>&gt;v24.15.0&lt;/<span class="t">node.version</span>&gt;
-    &lt;<span class="t">pnpm.version</span>&gt;v11.10.0&lt;/<span class="t">pnpm.version</span>&gt;
 &lt;/<span class="t">properties</span>&gt;</code></pre></figure>
 <figure class="code"><figcaption><span>XML</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>&lt;<span class="t">plugin</span>&gt;
     &lt;<span class="t">groupId</span>&gt;com.github.eirslett&lt;/<span class="t">groupId</span>&gt;
     &lt;<span class="t">artifactId</span>&gt;frontend-maven-plugin&lt;/<span class="t">artifactId</span>&gt;
     &lt;<span class="t">version</span>&gt;1.15.1&lt;/<span class="t">version</span>&gt;
-    <span class="c">&lt;!-- plugin-level: also used by command-line calls (mvn frontend:pnpm ...) --&gt;</span>
+    <span class="c">&lt;!-- plugin-level: also used by command-line calls (mvn frontend:npm ...) --&gt;</span>
     &lt;<span class="t">configuration</span>&gt;
         &lt;<span class="t">workingDirectory</span>&gt;frontend&lt;/<span class="t">workingDirectory</span>&gt;
         &lt;<span class="t">installDirectory</span>&gt;.tooling&lt;/<span class="t">installDirectory</span>&gt;
         &lt;<span class="t">nodeVersion</span>&gt;<span class="v">${node.version}</span>&lt;/<span class="t">nodeVersion</span>&gt;
-        &lt;<span class="t">pnpmVersion</span>&gt;<span class="v">${pnpm.version}</span>&lt;/<span class="t">pnpmVersion</span>&gt;
     &lt;/<span class="t">configuration</span>&gt;
     &lt;<span class="t">executions</span>&gt;
         &lt;<span class="t">execution</span>&gt;
-            &lt;<span class="t">id</span>&gt;install-node-and-pnpm&lt;/<span class="t">id</span>&gt;
+            &lt;<span class="t">id</span>&gt;install-node-and-npm&lt;/<span class="t">id</span>&gt;
             &lt;<span class="t">goals</span>&gt;
-                &lt;<span class="t">goal</span>&gt;install-node-and-pnpm&lt;/<span class="t">goal</span>&gt;
+                &lt;<span class="t">goal</span>&gt;install-node-and-npm&lt;/<span class="t">goal</span>&gt;
             &lt;/<span class="t">goals</span>&gt;
         &lt;/<span class="t">execution</span>&gt;
-        <span class="c">&lt;!-- pnpm-install and pnpm-build: unchanged --&gt;</span>
+        <span class="c">&lt;!-- npm-ci and npm-build: unchanged --&gt;</span>
     &lt;/<span class="t">executions</span>&gt;
 &lt;/<span class="t">plugin</span>&gt;</code></pre></figure>
+<p>The npm version is the one bundled with the Node version. To pin a different one, add <code>&lt;npmVersion&gt;</code> next to <code>&lt;nodeVersion&gt;</code>.</p>
 <p>Ignore the new directory in git (<code>.gitignore</code> next to the <code>pom.xml</code>):</p>
 <figure class="code"><figcaption><span>Text</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>.tooling/</code></pre></figure>
 <p><strong>Supply-chain safety net.</strong> Put an <code>.npmrc</code> into <code>frontend/</code>:</p>
 <figure class="code"><figcaption><span>Text</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>ignore-scripts=true</code></pre></figure>
-<p>With it, <em>every</em> pnpm call &mdash; also the ones you type in step 4, such as <code>pnpmw add …</code> &mdash; skips the lifecycle scripts of dependencies, not just the <code>install</code> in the pom. Scripts you call explicitly (<code>pnpm start</code>, <code>pnpm run build</code>, <code>pnpm test</code>) still run.</p>
+<p>With it, <em>every</em> npm call &mdash; also the ones you type in step 4, such as <code>npmw install …</code>, and the <code>npm install</code> that <code>ng update</code> runs &mdash; skips the lifecycle scripts of dependencies, not just the calls in the pom. Scripts you call explicitly (<code>npm start</code>, <code>npm run build</code>, <code>npm test</code>) still run.</p>
 <p><strong>Check:</strong></p>
 <figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>mvn package
-ls .tooling/node         <span class="c"> # node, pnpm, node_modules/</span></code></pre></figure>
+ls .tooling/node         <span class="c"> # node, npm, npx, node_modules/</span></code></pre></figure>
 <h2 id="2-unit-tests-in-the-build"><span class="num">2</span>Unit tests in the build</h2>
 <p>One more execution runs the Angular unit tests (Vitest, via <code>ng test</code>) in Maven's <code>test</code> phase:</p>
 <figure class="code"><figcaption><span>XML</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>&lt;<span class="t">execution</span>&gt;
-    &lt;<span class="t">id</span>&gt;pnpm-test&lt;/<span class="t">id</span>&gt;
+    &lt;<span class="t">id</span>&gt;npm-test&lt;/<span class="t">id</span>&gt;
     &lt;<span class="t">phase</span>&gt;test&lt;/<span class="t">phase</span>&gt;
     &lt;<span class="t">goals</span>&gt;
-        &lt;<span class="t">goal</span>&gt;pnpm&lt;/<span class="t">goal</span>&gt;
+        &lt;<span class="t">goal</span>&gt;npm&lt;/<span class="t">goal</span>&gt;
     &lt;/<span class="t">goals</span>&gt;
     &lt;<span class="t">configuration</span>&gt;
         &lt;<span class="t">arguments</span>&gt;test&lt;/<span class="t">arguments</span>&gt;
@@ -428,7 +428,7 @@ ls .tooling/node         <span class="c"> # node, pnpm, node_modules/</span></co
 <p>The plugin honours the usual Maven switches: <code>mvn package -DskipTests</code> skips only this execution; install and build still run.</p>
 <p><strong>Check:</strong></p>
 <figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>mvn test
-<span class="c"># [INFO] --- frontend:1.15.1:pnpm (pnpm-test) @ myapp ---</span>
+<span class="c"># [INFO] --- frontend:1.15.1:npm (npm-test) @ myapp ---</span>
 <span class="c"># [INFO]       Tests  1 passed (1)</span></code></pre></figure>
 <h2 id="3-the-angular-dev-server-via-maven"><span class="num">3</span>The Angular dev server via Maven</h2>
 <p>The Angular dev server runs on port 4200, the REST server somewhere else (here <code>localhost:8080</code>). The browser only talks to 4200; the dev server forwards REST calls to the REST server (no CORS setup needed).</p>
@@ -479,30 +479,31 @@ export default {
                     &lt;<span class="t">artifactId</span>&gt;frontend-maven-plugin&lt;/<span class="t">artifactId</span>&gt;
                     &lt;<span class="t">executions</span>&gt;
                         &lt;<span class="t">execution</span>&gt;
-                            &lt;<span class="t">id</span>&gt;ng-serve-install-node-and-pnpm&lt;/<span class="t">id</span>&gt;
+                            &lt;<span class="t">id</span>&gt;ng-serve-install-node-and-npm&lt;/<span class="t">id</span>&gt;
                             &lt;<span class="t">phase</span>&gt;validate&lt;/<span class="t">phase</span>&gt;
                             &lt;<span class="t">goals</span>&gt;
-                                &lt;<span class="t">goal</span>&gt;install-node-and-pnpm&lt;/<span class="t">goal</span>&gt;
+                                &lt;<span class="t">goal</span>&gt;install-node-and-npm&lt;/<span class="t">goal</span>&gt;
                             &lt;/<span class="t">goals</span>&gt;
                         &lt;/<span class="t">execution</span>&gt;
                         &lt;<span class="t">execution</span>&gt;
-                            &lt;<span class="t">id</span>&gt;ng-serve-pnpm-install&lt;/<span class="t">id</span>&gt;
+                            &lt;<span class="t">id</span>&gt;ng-serve-npm-install&lt;/<span class="t">id</span>&gt;
                             &lt;<span class="t">phase</span>&gt;validate&lt;/<span class="t">phase</span>&gt;
                             &lt;<span class="t">goals</span>&gt;
-                                &lt;<span class="t">goal</span>&gt;pnpm&lt;/<span class="t">goal</span>&gt;
+                                &lt;<span class="t">goal</span>&gt;npm&lt;/<span class="t">goal</span>&gt;
                             &lt;/<span class="t">goals</span>&gt;
                             &lt;<span class="t">configuration</span>&gt;
-                                &lt;<span class="t">arguments</span>&gt;install --ignore-scripts --frozen-lockfile&lt;/<span class="t">arguments</span>&gt;
+                                <span class="c">&lt;!-- install, not ci: fast when nothing changed, keeps node_modules --&gt;</span>
+                                &lt;<span class="t">arguments</span>&gt;install --ignore-scripts&lt;/<span class="t">arguments</span>&gt;
                             &lt;/<span class="t">configuration</span>&gt;
                         &lt;/<span class="t">execution</span>&gt;
                         &lt;<span class="t">execution</span>&gt;
                             &lt;<span class="t">id</span>&gt;ng-serve&lt;/<span class="t">id</span>&gt;
                             &lt;<span class="t">phase</span>&gt;validate&lt;/<span class="t">phase</span>&gt;
                             &lt;<span class="t">goals</span>&gt;
-                                &lt;<span class="t">goal</span>&gt;pnpm&lt;/<span class="t">goal</span>&gt;
+                                &lt;<span class="t">goal</span>&gt;npm&lt;/<span class="t">goal</span>&gt;
                             &lt;/<span class="t">goals</span>&gt;
                             &lt;<span class="t">configuration</span>&gt;
-                                &lt;<span class="t">arguments</span>&gt;start --port <span class="v">${ng.port}</span>&lt;/<span class="t">arguments</span>&gt;
+                                &lt;<span class="t">arguments</span>&gt;start -- --port <span class="v">${ng.port}</span>&lt;/<span class="t">arguments</span>&gt;
                                 &lt;<span class="t">environmentVariables</span>&gt;
                                     &lt;<span class="t">BACKEND_URL</span>&gt;<span class="v">${backend.url}</span>&lt;/<span class="t">BACKEND_URL</span>&gt;
                                     &lt;<span class="t">NG_CLI_ANALYTICS</span>&gt;false&lt;/<span class="t">NG_CLI_ANALYTICS</span>&gt;
@@ -516,70 +517,72 @@ export default {
     &lt;/<span class="t">profile</span>&gt;
 &lt;/<span class="t">profiles</span>&gt;</code></pre></figure>
 <p>How it works:</p>
-<ul><li><strong><code>&lt;defaultGoal&gt;validate&lt;/defaultGoal&gt;</code></strong> &mdash; <code>mvn -Png-serve</code> needs no goal. Only <code>validate</code> runs: no compilation, no WAR.</li><li><strong>Three executions, all bound to <code>validate</code></strong>, in this order: install Node and pnpm, run <code>pnpm install</code>, start <code>ng serve</code>. The first two finish in about a second when nothing changed, but they make sure a fresh checkout &mdash; or a <code>git pull</code> that brought new dependencies &mdash; just works.</li><li><strong><code>pnpm start --port …</code></strong> runs the <code>start</code> script of <code>package.json</code> (<code>ng serve</code>); pnpm appends <code>--port</code> to it.</li><li><strong><code>BACKEND_URL</code></strong> reaches <code>proxy.conf.mjs</code> as an environment variable; <code>-Dbackend.url=…</code> changes it from the command line.</li><li><strong><code>NG_CLI_ANALYTICS=false</code></strong> &mdash; the Angular CLI may ask whether to share usage data. Under Maven nobody can answer that prompt and the start would hang.</li><li>The <code>ng-serve</code> goal <strong>keeps running</strong> &mdash; that is the dev server. <strong>Ctrl-C</strong> stops Maven and the Node processes together (verified: nothing is left running).</li></ul>
+<ul><li><strong><code>&lt;defaultGoal&gt;validate&lt;/defaultGoal&gt;</code></strong> &mdash; <code>mvn -Png-serve</code> needs no goal. Only <code>validate</code> runs: no compilation, no WAR.</li><li><strong>Three executions, all bound to <code>validate</code></strong>, in this order: install Node and npm, run <code>npm install</code>, start <code>ng serve</code>. The first two finish in about a second when nothing changed, but they make sure a fresh checkout &mdash; or a <code>git pull</code> that brought new dependencies &mdash; just works.</li><li><strong><code>npm install</code> here, <code>npm ci</code> in the build:</strong> <code>npm ci</code> deletes <code>node_modules</code> and reinstalls everything on every start (about 6 s instead of 1 s in the sample) &mdash; and it would pull <code>node_modules</code> away from a test watcher running in another terminal. The build keeps <code>npm ci</code>, so a lock file that is out of sync still fails there.</li><li><strong><code>npm start -- --port …</code></strong> runs the <code>start</code> script of <code>package.json</code> (<code>ng serve</code>); everything after <code>--</code> is passed on to it.</li><li><strong><code>BACKEND_URL</code></strong> reaches <code>proxy.conf.mjs</code> as an environment variable; <code>-Dbackend.url=…</code> changes it from the command line.</li><li><strong><code>NG_CLI_ANALYTICS=false</code></strong> &mdash; the Angular CLI may ask whether to share usage data. Under Maven nobody can answer that prompt and the start would hang.</li><li>The <code>ng-serve</code> goal <strong>keeps running</strong> &mdash; that is the dev server. <strong>Ctrl-C</strong> stops Maven and the Node processes together (verified: nothing is left running).</li></ul>
 <p><strong>Run it:</strong></p>
 <figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>mvn -Png-serve
-<span class="c"># [INFO] $ ng serve --port 4200</span>
+<span class="c"># [INFO] &gt; ng serve --port 4200</span>
 <span class="c"># [INFO] Watch mode enabled. Watching for file changes...</span>
 <span class="c"># [INFO]   ➜  Local:   http://localhost:4200/</span>
 
 mvn -Png-serve -Dng.port=4300                                  <span class="c"> # 4200 taken</span>
 mvn -Png-serve -Dbackend.url=http://localhost:8190/myapp       <span class="c"> # REST server on another port</span></code></pre></figure>
 <p>Edit a component and save &mdash; the dev server rebuilds in a fraction of a second and pushes the change into the open browser tab:</p>
-<figure class="code"><figcaption><span>Text</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>[INFO] ❯ Changes detected. Rebuilding...
-[INFO] Application bundle generation complete. [0.183 seconds]
+<figure class="code"><figcaption><span>Text</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>[INFO] ✔ Changes detected. Rebuilding...
 [INFO] Component update sent to client(s).</code></pre></figure>
 <p>"Component update sent" is hot module replacement: templates and styles are swapped without a page reload, form input and component state stay.</p>
-<h2 id="4-angular-cli-and-pnpm-for-daily-work"><span class="num">4</span>Angular CLI and pnpm for daily work</h2>
-<p>All CLI commands run through the Node and pnpm in <code>.tooling/</code>. There are two ways.</p>
+<h2 id="4-angular-cli-and-npm-for-daily-work"><span class="num">4</span>Angular CLI and npm for daily work</h2>
+<p>All CLI commands run through the Node and npm in <code>.tooling/</code>. There are two ways.</p>
 <p><strong>a) Pure Maven</strong> &mdash; no extra files, but verbose:</p>
-<figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>mvn frontend:pnpm -Dfrontend.pnpm.arguments="exec ng generate component features/greeting"
-<span class="c"># [INFO] CREATE src/app/features/greeting/greeting.ts (198 bytes)</span>
+<figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>mvn frontend:npm -Dfrontend.npm.arguments="exec -- ng generate component features/greeting"
+<span class="c"># [INFO] CREATE src/app/features/greeting/greeting.ts (165 bytes)</span>
 <span class="c"># …</span></code></pre></figure>
-<p>This works because of step 1: the command-line call sees the plugin-level configuration (working directory, install directory, versions).</p>
-<p><strong>b) A wrapper script <code>pnpmw</code></strong> &mdash; like <code>mvnw</code>, committed next to the <code>pom.xml</code>. It runs the project's own pnpm inside <code>frontend/</code> and installs Node and pnpm through Maven first, if they are missing:</p>
+<p>This works because of step 1: the command-line call sees the plugin-level configuration (working directory, install directory, Node version).</p>
+<p><strong>b) A wrapper script <code>npmw</code></strong> &mdash; like <code>mvnw</code>, committed next to the <code>pom.xml</code>. It runs the project's own npm inside <code>frontend/</code> and installs Node and npm through Maven first, if they are missing:</p>
 <figure class="code"><figcaption><span>Shell script</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>#!/bin/sh
-<span class="c"># pnpmw – runs the project's own pnpm (the one Maven installed into .tooling/)</span>
-<span class="c"># inside frontend/. Installs Node + pnpm via Maven first if they are missing.</span>
-<span class="c">#   ./pnpmw ng generate component features/foo</span>
-<span class="c">#   ./pnpmw add date-fns</span>
+<span class="c"># npmw – runs the project's own npm (the one Maven installed into .tooling/)</span>
+<span class="c"># inside frontend/. Installs Node + npm via Maven first if they are missing.</span>
+<span class="c">#   ./npmw exec -- ng generate component features/foo</span>
+<span class="c">#   ./npmw install date-fns</span>
 set -e
 BASE=$(cd "$(dirname "$0")" &amp;&amp; pwd)
 NODE_DIR="$BASE/.tooling/node"
 if [ ! -x "$NODE_DIR/node" ]; then
-  mvn -q -f "$BASE/pom.xml" frontend:install-node-and-pnpm
+  mvn -q -f "$BASE/pom.xml" frontend:install-node-and-npm
 fi
 PATH="$NODE_DIR:$PATH"
 export PATH
-exec "$NODE_DIR/node" "$NODE_DIR/node_modules/pnpm/bin/pnpm.cjs" --dir "$BASE/frontend" "$@"</code></pre></figure>
-<figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>chmod +x pnpmw
-git add pnpmw &amp;&amp; git update-index --chmod=+x pnpmw  <span class="c"> # keep the executable bit in git</span></code></pre></figure>
-<p>Windows variant <code>pnpmw.cmd</code> (<strong>not tested</strong> &mdash; same logic):</p>
+cd "$BASE/frontend"
+exec "$NODE_DIR/node" "$NODE_DIR/node_modules/npm/bin/npm-cli.js" "$@"</code></pre></figure>
+<figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>chmod +x npmw
+git add npmw &amp;&amp; git update-index --chmod=+x npmw  <span class="c"> # keep the executable bit in git</span></code></pre></figure>
+<p>Windows variant <code>npmw.cmd</code> (<strong>not tested</strong> &mdash; same logic):</p>
 <figure class="code"><figcaption><span>Batch</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>@echo off
 setlocal
 set "BASE=%~dp0"
 set "NODE_DIR=%BASE%.tooling\node"
 if not exist "%NODE_DIR%\node.exe" (
-  call mvn -q -f "%BASE%pom.xml" frontend:install-node-and-pnpm || exit /b 1
+  call mvn -q -f "%BASE%pom.xml" frontend:install-node-and-npm || exit /b 1
 )
 set "PATH=%NODE_DIR%;%PATH%"
-"%NODE_DIR%\node.exe" "%NODE_DIR%\node_modules\pnpm\bin\pnpm.cjs" --dir "%BASE%frontend" %*</code></pre></figure>
-<p>Because the wrapper puts <code>.tooling/node</code> first on the <code>PATH</code>, tools that call <code>node</code> or <code>pnpm</code> themselves (e.g. <code>ng update</code>, which runs <code>pnpm install</code>) use the same versions.</p>
+cd /d "%BASE%frontend"
+"%NODE_DIR%\node.exe" "%NODE_DIR%\node_modules\npm\bin\npm-cli.js" %*</code></pre></figure>
+<p>Because the wrapper puts <code>.tooling/node</code> first on the <code>PATH</code>, tools that call <code>node</code> or <code>npm</code> themselves (e.g. <code>ng update</code>, which runs <code>npm install</code>) use the same versions.</p>
+<p><code>npm exec -- ng …</code> runs the Angular CLI from <code>frontend/node_modules</code> &mdash; the version in <code>package.json</code>, never a global one.</p>
 <p><strong>Check:</strong></p>
-<figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>./pnpmw --version             <span class="c"> # 11.10.0</span>
-./pnpmw ng version            <span class="c"> # Angular CLI 22.0.5, Node.js 24.15.0</span></code></pre></figure>
+<figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>./npmw --version                <span class="c"> # 11.12.1</span>
+./npmw exec -- ng version       <span class="c"> # Angular CLI 22.3.0, Node.js 24.15.0, Package Manager npm 11.12.1</span></code></pre></figure>
 <h2 id="5-ide-setup"><span class="num">5</span>IDE setup</h2>
 <p><strong>IntelliJ IDEA / WebStorm</strong></p>
-<ul><li><em>Settings → Languages &amp; Frameworks → Node.js</em>: Node interpreter <code>&lt;project&gt;/.tooling/node/node</code> (Windows: <code>node.exe</code>), package manager <code>&lt;project&gt;/.tooling/node/node_modules/pnpm</code>. Code completion, the Angular language service, running single tests from the gutter &mdash; all with the project's versions.</li><li><em>Run configuration</em> (type Maven) <strong>ng serve</strong> with command line <code>-Png-serve</code>.</li></ul>
+<ul><li><em>Settings → Languages &amp; Frameworks → Node.js</em>: Node interpreter <code>&lt;project&gt;/.tooling/node/node</code> (Windows: <code>node.exe</code>), package manager <code>&lt;project&gt;/.tooling/node/node_modules/npm</code>. Code completion, the Angular language service, running single tests from the gutter &mdash; all with the project's versions.</li><li><em>Run configuration</em> (type Maven) <strong>ng serve</strong> with command line <code>-Png-serve</code>.</li></ul>
 <p><strong>VS Code</strong></p>
-<ul><li>Run <code>mvn -Png-serve</code> in a terminal, or add it as an entry in <code>.vscode/tasks.json</code>.</li><li>Use <code>./pnpmw …</code> in the integrated terminal for CLI commands.</li></ul>
+<ul><li>Run <code>mvn -Png-serve</code> in a terminal, or add it as an entry in <code>.vscode/tasks.json</code>.</li><li>Use <code>./npmw …</code> in the integrated terminal for CLI commands.</li></ul>
 <h2 id="6-daily-work-cheat-sheet"><span class="num">6</span>Daily work &mdash; cheat sheet</h2>
 <p><strong>Start of the day</strong> &mdash; make sure the REST server is reachable, then:</p>
 <figure class="code"><figcaption><span>Shell</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>mvn -Png-serve       <span class="c"> # Angular dev server → open http://localhost:4200</span></code></pre></figure>
-<div class="table"><table><thead><tr><th>Task</th><th>Command</th></tr></thead><tbody><tr><td>Work on the UI</td><td>edit <code>frontend/src/**</code> &mdash; the browser updates itself</td></tr><tr><td>New component / service / …</td><td><code>./pnpmw ng generate component features/foo</code></td></tr><tr><td>Add a library</td><td><code>./pnpmw add date-fns</code> (commit <code>package.json</code> <strong>and</strong> <code>pnpm-lock.yaml</code>)</td></tr><tr><td>Unit tests while coding</td><td><code>./pnpmw test --watch</code> (second terminal, re-runs on save)</td></tr><tr><td>Unit tests once</td><td><code>./pnpmw test</code></td></tr><tr><td>After <code>git pull</code></td><td>nothing &mdash; <code>mvn -Png-serve</code> runs <code>pnpm install</code> on every start</td></tr><tr><td>Update Angular</td><td><code>./pnpmw ng update @angular/core @angular/cli</code></td></tr><tr><td>Update Node / pnpm</td><td>change <code>node.version</code> / <code>pnpm.version</code> in the pom <strong>and</strong> <code>packageManager</code> in <code>package.json</code></td></tr><tr><td>Deployable WAR</td><td><code>mvn package</code> → <code>target/myapp.war</code> (frontend built and tested)</td></tr></tbody></table></div>
+<div class="table"><table><thead><tr><th>Task</th><th>Command</th></tr></thead><tbody><tr><td>Work on the UI</td><td>edit <code>frontend/src/**</code> &mdash; the browser updates itself</td></tr><tr><td>New component / service / …</td><td><code>./npmw exec -- ng generate component features/foo</code></td></tr><tr><td>Add a library</td><td><code>./npmw install date-fns</code> (commit <code>package.json</code> <strong>and</strong> <code>package-lock.json</code>)</td></tr><tr><td>Unit tests while coding</td><td><code>./npmw test -- --watch</code> (second terminal, re-runs on save)</td></tr><tr><td>Unit tests once</td><td><code>./npmw test</code></td></tr><tr><td>After <code>git pull</code></td><td>nothing &mdash; <code>mvn -Png-serve</code> runs <code>npm install</code> on every start</td></tr><tr><td>Update Angular</td><td><code>./npmw exec -- ng update @angular/core @angular/cli</code></td></tr><tr><td>Update Node / npm</td><td>change <code>node.version</code> in the pom (npm comes with it)</td></tr><tr><td>Deployable WAR</td><td><code>mvn package</code> → <code>target/myapp.war</code> (frontend built and tested)</td></tr></tbody></table></div>
 <p><strong>Which URL?</strong> During development always <strong>http://localhost:4200</strong>. A WAR that is deployed somewhere contains the frontend of its last <code>mvn package</code> &mdash; usually an old one.</p>
 <h2 id="7-troubleshooting"><span class="num">7</span>Troubleshooting</h2>
-<div class="table"><table><thead><tr><th>Symptom</th><th>Cause / fix</th></tr></thead><tbody><tr><td><code>mvn -Png-serve</code> hangs before "Local:"</td><td>an interactive CLI prompt; keep <code>NG_CLI_ANALYTICS=false</code> in the profile</td></tr><tr><td><code>/api/...</code> returns 404 or 504 on port 4200</td><td>REST server not running, or wrong <code>-Dbackend.url</code> (context root included?)</td></tr><tr><td><code>Port 4200 is already in use</code></td><td>another dev server is still running; stop it or use <code>-Dng.port=4300</code></td></tr><tr><td>Build fails with <code>ERR_PNPM_OUTDATED_LOCKFILE</code></td><td><code>package.json</code> changed without <code>pnpm-lock.yaml</code>; run <code>./pnpmw install</code> and commit the lock file</td></tr><tr><td><code>mvn frontend:pnpm …</code> uses wrong directory / version</td><td>the configuration is still inside an <code>&lt;execution&gt;</code>; move it to plugin level (step 1)</td></tr><tr><td>Company network: downloads blocked</td><td>Maven's proxy settings are passed on to pnpm automatically. For a Nexus/Artifactory mirror set <code>&lt;nodeDownloadRoot&gt;</code> / <code>&lt;pnpmDownloadRoot&gt;</code> (and <code>&lt;serverId&gt;</code> for credentials from <code>settings.xml</code>) at plugin level, and <code>registry=…</code> in <code>frontend/.npmrc</code></td></tr></tbody></table></div>
+<div class="table"><table><thead><tr><th>Symptom</th><th>Cause / fix</th></tr></thead><tbody><tr><td><code>mvn -Png-serve</code> hangs before "Local:"</td><td>an interactive CLI prompt; keep <code>NG_CLI_ANALYTICS=false</code> in the profile</td></tr><tr><td>An option is ignored (<code>--port</code>, <code>--watch</code>, <code>--skip-tests</code>, …)</td><td>missing <code>--</code>: npm took the option for itself (see the note at the top)</td></tr><tr><td><code>/api/...</code> returns 404 or 504 on port 4200</td><td>REST server not running, or wrong <code>-Dbackend.url</code> (context root included?)</td></tr><tr><td><code>Port 4200 is already in use</code></td><td>another dev server is still running; stop it or use <code>-Dng.port=4300</code></td></tr><tr><td>Build fails: <code>npm ci</code> "can only install packages when your package.json and package-lock.json … are in sync"</td><td><code>package.json</code> changed without <code>package-lock.json</code>; run <code>./npmw install</code> and commit the lock file</td></tr><tr><td><code>mvn frontend:npm …</code> uses wrong directory / version</td><td>the configuration is still inside an <code>&lt;execution&gt;</code>; move it to plugin level (step 1)</td></tr><tr><td>Company network: downloads blocked</td><td>Maven's proxy settings are passed on to npm automatically. For a Nexus/Artifactory mirror set <code>&lt;nodeDownloadRoot&gt;</code> (and <code>&lt;serverId&gt;</code> for credentials from <code>settings.xml</code>) at plugin level, and <code>registry=…</code> in <code>frontend/.npmrc</code></td></tr></tbody></table></div>
 <h2 id="appendix-the-complete-pomxml">Appendix: the complete <code>pom.xml</code></h2>
 <p>The verified sample project, all steps applied:</p>
 <figure class="code"><figcaption><span>XML</span><button type="button" class="copy" aria-label="Copy code">Copy</button></figcaption><pre><code>&lt;?<span class="t">xml</span> <span class="a">version</span>=<span class="s">"1.0"</span> <span class="a">encoding</span>=<span class="s">"UTF-8"</span>?&gt;
@@ -598,9 +601,8 @@ set "PATH=%NODE_DIR%;%PATH%"
         &lt;<span class="t">project.build.sourceEncoding</span>&gt;UTF-8&lt;/<span class="t">project.build.sourceEncoding</span>&gt;
         &lt;<span class="t">failOnMissingWebXml</span>&gt;false&lt;/<span class="t">failOnMissingWebXml</span>&gt;
 
-        <span class="c">&lt;!-- frontend toolchain: keep in sync with "packageManager" in frontend/package.json --&gt;</span>
+        <span class="c">&lt;!-- frontend toolchain: Node.js (npm is bundled with it) --&gt;</span>
         &lt;<span class="t">node.version</span>&gt;v24.15.0&lt;/<span class="t">node.version</span>&gt;
-        &lt;<span class="t">pnpm.version</span>&gt;v11.10.0&lt;/<span class="t">pnpm.version</span>&gt;
         <span class="c">&lt;!-- where ng serve forwards /api to: the running REST server incl. context root --&gt;</span>
         &lt;<span class="t">backend.url</span>&gt;http://localhost:8080/myapp&lt;/<span class="t">backend.url</span>&gt;
         <span class="c">&lt;!-- port of the Angular dev server --&gt;</span>
@@ -623,43 +625,42 @@ set "PATH=%NODE_DIR%;%PATH%"
                 &lt;<span class="t">groupId</span>&gt;com.github.eirslett&lt;/<span class="t">groupId</span>&gt;
                 &lt;<span class="t">artifactId</span>&gt;frontend-maven-plugin&lt;/<span class="t">artifactId</span>&gt;
                 &lt;<span class="t">version</span>&gt;1.15.1&lt;/<span class="t">version</span>&gt;
-                <span class="c">&lt;!-- plugin-level: also used by command-line calls (mvn frontend:pnpm ...) --&gt;</span>
+                <span class="c">&lt;!-- plugin-level: also used by command-line calls (mvn frontend:npm ...) --&gt;</span>
                 &lt;<span class="t">configuration</span>&gt;
                     &lt;<span class="t">workingDirectory</span>&gt;frontend&lt;/<span class="t">workingDirectory</span>&gt;
                     &lt;<span class="t">installDirectory</span>&gt;.tooling&lt;/<span class="t">installDirectory</span>&gt;
                     &lt;<span class="t">nodeVersion</span>&gt;<span class="v">${node.version}</span>&lt;/<span class="t">nodeVersion</span>&gt;
-                    &lt;<span class="t">pnpmVersion</span>&gt;<span class="v">${pnpm.version}</span>&lt;/<span class="t">pnpmVersion</span>&gt;
                 &lt;/<span class="t">configuration</span>&gt;
                 &lt;<span class="t">executions</span>&gt;
                     &lt;<span class="t">execution</span>&gt;
-                        &lt;<span class="t">id</span>&gt;install-node-and-pnpm&lt;/<span class="t">id</span>&gt;
+                        &lt;<span class="t">id</span>&gt;install-node-and-npm&lt;/<span class="t">id</span>&gt;
                         &lt;<span class="t">goals</span>&gt;
-                            &lt;<span class="t">goal</span>&gt;install-node-and-pnpm&lt;/<span class="t">goal</span>&gt;
+                            &lt;<span class="t">goal</span>&gt;install-node-and-npm&lt;/<span class="t">goal</span>&gt;
                         &lt;/<span class="t">goals</span>&gt;
                     &lt;/<span class="t">execution</span>&gt;
                     &lt;<span class="t">execution</span>&gt;
-                        &lt;<span class="t">id</span>&gt;pnpm-install&lt;/<span class="t">id</span>&gt;
+                        &lt;<span class="t">id</span>&gt;npm-ci&lt;/<span class="t">id</span>&gt;
                         &lt;<span class="t">goals</span>&gt;
-                            &lt;<span class="t">goal</span>&gt;pnpm&lt;/<span class="t">goal</span>&gt;
+                            &lt;<span class="t">goal</span>&gt;npm&lt;/<span class="t">goal</span>&gt;
                         &lt;/<span class="t">goals</span>&gt;
                         &lt;<span class="t">configuration</span>&gt;
-                            &lt;<span class="t">arguments</span>&gt;install --ignore-scripts --frozen-lockfile&lt;/<span class="t">arguments</span>&gt;
+                            &lt;<span class="t">arguments</span>&gt;ci --ignore-scripts&lt;/<span class="t">arguments</span>&gt;
                         &lt;/<span class="t">configuration</span>&gt;
                     &lt;/<span class="t">execution</span>&gt;
                     &lt;<span class="t">execution</span>&gt;
-                        &lt;<span class="t">id</span>&gt;pnpm-build&lt;/<span class="t">id</span>&gt;
+                        &lt;<span class="t">id</span>&gt;npm-build&lt;/<span class="t">id</span>&gt;
                         &lt;<span class="t">goals</span>&gt;
-                            &lt;<span class="t">goal</span>&gt;pnpm&lt;/<span class="t">goal</span>&gt;
+                            &lt;<span class="t">goal</span>&gt;npm&lt;/<span class="t">goal</span>&gt;
                         &lt;/<span class="t">goals</span>&gt;
                         &lt;<span class="t">configuration</span>&gt;
                             &lt;<span class="t">arguments</span>&gt;run build&lt;/<span class="t">arguments</span>&gt;
                         &lt;/<span class="t">configuration</span>&gt;
                     &lt;/<span class="t">execution</span>&gt;
                     &lt;<span class="t">execution</span>&gt;
-                        &lt;<span class="t">id</span>&gt;pnpm-test&lt;/<span class="t">id</span>&gt;
+                        &lt;<span class="t">id</span>&gt;npm-test&lt;/<span class="t">id</span>&gt;
                         &lt;<span class="t">phase</span>&gt;test&lt;/<span class="t">phase</span>&gt;
                         &lt;<span class="t">goals</span>&gt;
-                            &lt;<span class="t">goal</span>&gt;pnpm&lt;/<span class="t">goal</span>&gt;
+                            &lt;<span class="t">goal</span>&gt;npm&lt;/<span class="t">goal</span>&gt;
                         &lt;/<span class="t">goals</span>&gt;
                         &lt;<span class="t">configuration</span>&gt;
                             &lt;<span class="t">arguments</span>&gt;test&lt;/<span class="t">arguments</span>&gt;
@@ -694,30 +695,31 @@ set "PATH=%NODE_DIR%;%PATH%"
                         &lt;<span class="t">artifactId</span>&gt;frontend-maven-plugin&lt;/<span class="t">artifactId</span>&gt;
                         &lt;<span class="t">executions</span>&gt;
                             &lt;<span class="t">execution</span>&gt;
-                                &lt;<span class="t">id</span>&gt;ng-serve-install-node-and-pnpm&lt;/<span class="t">id</span>&gt;
+                                &lt;<span class="t">id</span>&gt;ng-serve-install-node-and-npm&lt;/<span class="t">id</span>&gt;
                                 &lt;<span class="t">phase</span>&gt;validate&lt;/<span class="t">phase</span>&gt;
                                 &lt;<span class="t">goals</span>&gt;
-                                    &lt;<span class="t">goal</span>&gt;install-node-and-pnpm&lt;/<span class="t">goal</span>&gt;
+                                    &lt;<span class="t">goal</span>&gt;install-node-and-npm&lt;/<span class="t">goal</span>&gt;
                                 &lt;/<span class="t">goals</span>&gt;
                             &lt;/<span class="t">execution</span>&gt;
                             &lt;<span class="t">execution</span>&gt;
-                                &lt;<span class="t">id</span>&gt;ng-serve-pnpm-install&lt;/<span class="t">id</span>&gt;
+                                &lt;<span class="t">id</span>&gt;ng-serve-npm-install&lt;/<span class="t">id</span>&gt;
                                 &lt;<span class="t">phase</span>&gt;validate&lt;/<span class="t">phase</span>&gt;
                                 &lt;<span class="t">goals</span>&gt;
-                                    &lt;<span class="t">goal</span>&gt;pnpm&lt;/<span class="t">goal</span>&gt;
+                                    &lt;<span class="t">goal</span>&gt;npm&lt;/<span class="t">goal</span>&gt;
                                 &lt;/<span class="t">goals</span>&gt;
                                 &lt;<span class="t">configuration</span>&gt;
-                                    &lt;<span class="t">arguments</span>&gt;install --ignore-scripts --frozen-lockfile&lt;/<span class="t">arguments</span>&gt;
+                                    <span class="c">&lt;!-- install, not ci: fast when nothing changed, keeps node_modules --&gt;</span>
+                                    &lt;<span class="t">arguments</span>&gt;install --ignore-scripts&lt;/<span class="t">arguments</span>&gt;
                                 &lt;/<span class="t">configuration</span>&gt;
                             &lt;/<span class="t">execution</span>&gt;
                             &lt;<span class="t">execution</span>&gt;
                                 &lt;<span class="t">id</span>&gt;ng-serve&lt;/<span class="t">id</span>&gt;
                                 &lt;<span class="t">phase</span>&gt;validate&lt;/<span class="t">phase</span>&gt;
                                 &lt;<span class="t">goals</span>&gt;
-                                    &lt;<span class="t">goal</span>&gt;pnpm&lt;/<span class="t">goal</span>&gt;
+                                    &lt;<span class="t">goal</span>&gt;npm&lt;/<span class="t">goal</span>&gt;
                                 &lt;/<span class="t">goals</span>&gt;
                                 &lt;<span class="t">configuration</span>&gt;
-                                    &lt;<span class="t">arguments</span>&gt;start --port <span class="v">${ng.port}</span>&lt;/<span class="t">arguments</span>&gt;
+                                    &lt;<span class="t">arguments</span>&gt;start -- --port <span class="v">${ng.port}</span>&lt;/<span class="t">arguments</span>&gt;
                                     &lt;<span class="t">environmentVariables</span>&gt;
                                         &lt;<span class="t">BACKEND_URL</span>&gt;<span class="v">${backend.url}</span>&lt;/<span class="t">BACKEND_URL</span>&gt;
                                         &lt;<span class="t">NG_CLI_ANALYTICS</span>&gt;false&lt;/<span class="t">NG_CLI_ANALYTICS</span>&gt;
