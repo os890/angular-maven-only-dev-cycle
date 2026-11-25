@@ -1,0 +1,15 @@
+#!/bin/sh
+# npmw – runs the project's own npm (the one Maven installed into .tooling/)
+# inside frontend/. Installs Node + npm via Maven first if they are missing.
+#   ./npmw exec -- ng generate component features/foo
+#   ./npmw install date-fns
+set -e
+BASE=$(cd "$(dirname "$0")" && pwd)
+NODE_DIR="$BASE/.tooling/node"
+if [ ! -x "$NODE_DIR/node" ]; then
+  mvn -q -f "$BASE/pom.xml" frontend:install-node-and-npm
+fi
+PATH="$NODE_DIR:$PATH"
+export PATH
+cd "$BASE/frontend"
+exec "$NODE_DIR/node" "$NODE_DIR/node_modules/npm/bin/npm-cli.js" "$@"

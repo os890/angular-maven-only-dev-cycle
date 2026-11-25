@@ -26,8 +26,8 @@ provides the REST APIs (locally, started from the IDE, or a shared dev/test serv
 > The Windows wrapper script in step 4 was **not** tested.
 
 > **Try it first?** The [`demo/`](demo/README.md) folder contains a minimal
-> hello-world WAR project in the state of step 0, plus a REST stub that runs with
-> the JDK's `jwebserver` — apply steps 1–4 to it and see the result in a few minutes.
+> hello-world WAR project with all steps applied, plus a REST stub that runs with
+> the JDK's `jwebserver` — `mvn -Png-serve` works right after checkout.
 
 ## The result at a glance
 
