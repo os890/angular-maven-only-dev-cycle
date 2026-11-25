@@ -25,6 +25,10 @@ provides the REST APIs (locally, started from the IDE, or a shared dev/test serv
 > npm 11.12.1 (bundled) · Angular 22.3.0 · macOS.
 > The Windows wrapper script in step 4 was **not** tested.
 
+> **Try it first?** The [`demo/`](demo/README.md) folder contains a minimal
+> hello-world WAR project in the state of step 0, plus a REST stub that runs with
+> the JDK's `jwebserver` — apply steps 1–4 to it and see the result in a few minutes.
+
 ## The result at a glance
 
 | You want to … | Command (from the WAR module) |
